@@ -13,6 +13,7 @@ def pattern_matching(pattern: str, genome: str) -> list[int]:
             if genome[i] == pattern[j]:
                 indicies.append(pattern[j])
 
+#returning
     return indicies
 
 
