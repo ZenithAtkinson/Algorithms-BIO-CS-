@@ -1,8 +1,9 @@
 import sys
 
-# Please do not remove package declarations because these are used by the autograder.
+#Exercise Break: 
+#Return a space-separated list of starting positions (in increasing order) where 
+#CTTGATCAT appears as a substring in the Vibrio cholerae genome.
 
-# Insert your pattern_matching function here, along with any subroutines you need
 def pattern_matching(pattern: str, genome: str) -> list[int]:
     """Find all occurrences of a pattern in a genome."""
     indicies = []
@@ -16,13 +17,13 @@ def pattern_matching(pattern: str, genome: str) -> list[int]:
 
     return indicies
 
+def read_in_file(file_path: str):
+    #
+    pass
 
-#For each character in the pattern...
-#Check the next PATTERN_LEN number of characters to see if they all match.
-    #Loop through it 4 times for each character. Each character checks if i+n = the pattern.
+##### MAIN CALL #####
 
-
-
+#The pattern needs to read in the txt file for Vibrio_cholerae. Needs a separate funciton
 pattern = "ATAT"
 genome = "GATATATGCATATACTT"
 
