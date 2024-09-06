@@ -5,7 +5,14 @@ import sys
 # Insert your frequent_words_with_mismatches function here, along with any subroutines you need
 def frequent_words_with_mismatches(text: str, k: int, d: int) -> list[str]:
     """Find the most frequent k-mers with up to d mismatches in a text."""
-    
+    patterns = []
+    freqMap = {}
+    n = len(text)
+    for i in range(n - k + 1):
+        pattern = text[i:k]
+        neighborhood = 
+         neighborhood ← Neighbors(Pattern, d)
+
     pass
 
 def frequency_table(Text: str, k: int):
@@ -23,4 +30,4 @@ text = "ACGTTGCATGTCGCATGATGCATGAGAGCT"
 k = 4
 d = 1
 
-print(frequent_words_with_mismatches(text, pattern, d))
+print(frequent_words_with_mismatches(text, k, d))
