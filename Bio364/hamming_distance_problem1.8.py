@@ -16,6 +16,7 @@ def hamming_distance(p: str, q: str) -> int:
     
     return ham
 
+
 pat1 = "GGGCCGTTGGT"
 pat2 = "GGACCGTTGAC"
 
