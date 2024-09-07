@@ -20,7 +20,7 @@ def neighbors(s: str, d: int) -> list[str]:
 def Suffix(s: str):
     s_len = len(s)
     new_s = s[1:s_len]
-    return new_
+    return new_s
 
 pattern = "CGATGGCCTA"
 
