@@ -1,6 +1,8 @@
 import argparse
 import random
 
+#REMEMBER: Redownload the Project 1 files.
+
 
 # This is a convenience function for main(). You don't need to touch it.
 def prime_test(N: int, k: int) -> tuple[str, str]:
