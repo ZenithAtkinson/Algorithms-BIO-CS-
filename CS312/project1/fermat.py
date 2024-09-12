@@ -7,18 +7,18 @@ def prime_test(N: int, k: int) -> tuple[str, str]:
     return fermat(N, k), miller_rabin(N, k)
 
 
-# You will need to implement this function and change the return value.
-def mod_exp(x: int, y: int, N: int) -> int:
+# You will need to implement this function and change the return value. 
+def mod_exp(x: int, y: int, N: int) -> int: # 1
+    return 0
+
+
+# You will need to implement this function and change the return value. 
+def fprobability(k: int) -> float: # 3
     return 0
 
 
 # You will need to implement this function and change the return value.
-def fprobability(k: int) -> float:
-    return 0
-
-
-# You will need to implement this function and change the return value.
-def mprobability(k: int) -> float:
+def mprobability(k: int) -> float: # 5
     return 0
 
 
@@ -28,7 +28,7 @@ def mprobability(k: int) -> float:
 # To generate random values for a, you will most likely want to use
 # random.randint(low, hi) which gives a random integer between low and
 # hi, inclusive.
-def fermat(N: int, k: int) -> str:
+def fermat(N: int, k: int) -> str: # 2
     return "???"
 
 
@@ -38,7 +38,7 @@ def fermat(N: int, k: int) -> str:
 # To generate random values for a, you will most likely want to use
 # random.randint(low, hi) which gives a random integer between low and
 # hi, inclusive.
-def miller_rabin(N: int, k: int) -> str:
+def miller_rabin(N: int, k: int) -> str: # 4
     return "???"
 
 
