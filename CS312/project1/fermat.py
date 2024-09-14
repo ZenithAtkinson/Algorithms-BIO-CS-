@@ -11,11 +11,20 @@ def prime_test(N: int, k: int) -> tuple[str, str]:
 
 # You will need to implement this function and change the return value. 
 def mod_exp(x: int, y: int, N: int) -> int: # 1
-    return 0
+    if y == 0:
+        return 1
+    z = mod_exp(x, (y//2), N)
+    if (y % 2) == 0:
+        return (z**2 % (N))
+    else:
+        return (x * (z**2 % (N)))
 
+#def test_mod():
+#   print(mod_exp(2, 41, 5))
 
 # You will need to implement this function and change the return value. 
 def fprobability(k: int) -> float: # 3
+
     return 0
 
 
@@ -31,7 +40,10 @@ def mprobability(k: int) -> float: # 5
 # random.randint(low, hi) which gives a random integer between low and
 # hi, inclusive.
 def fermat(N: int, k: int) -> str: # 2
-    return "???"
+    for a in range(1,k):
+        if a != (1 % N):
+            return "no"
+    return "yes"
 
 
 # You will need to implement this function and change the return value, which should be
@@ -43,8 +55,17 @@ def fermat(N: int, k: int) -> str: # 2
 def miller_rabin(N: int, k: int) -> str: # 4
     return "???"
 
+def roundDown(n: int):
+    test = n % 2
+    if (test == 1):
+        n = n - 1
+    return n
+    
+
 
 def main(number: int, k: int):
+    print(fermat(36, 12))
+    print("test mod:")
     fermat_call, miller_rabin_call = prime_test(number, k)
     fermat_prob = fprobability(k)
     mr_prob = mprobability(k)
