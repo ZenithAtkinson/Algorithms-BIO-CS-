@@ -7,7 +7,6 @@ import sys
 def profile_most_probable_kmer(text: str, k: int,
                                profile: list[dict[str, float]]) -> str:
     """Identifies the most probable k-mer according to a given profile matrix.
-
     The profile matrix is represented as a list of columns, where the i-th element is a map
     whose keys are strings ("A", "C", "G", and "T") and whose values represent the probability
     associated with this symbol in the i-th column of the profile matrix.
@@ -24,9 +23,9 @@ def profile_most_probable_kmer(text: str, k: int,
         if window not in prob_dict:
             prob_dict[window] = prob
     print(prob_dict)
-        
+
     return max(prob_dict, key=prob_dict.get)
-            
+
     # calculate probability based on window
         # add to dictionary, where key = kmer, probability
 
