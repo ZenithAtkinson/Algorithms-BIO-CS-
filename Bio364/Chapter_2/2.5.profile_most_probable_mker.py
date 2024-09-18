@@ -12,8 +12,8 @@ def profile_most_probable_kmer(text: str, k: int,
     associated with this symbol in the i-th column of the profile matrix.
     """
 
-    # Text, profile, length of kmer
-    # Loop through text with k size windows (sliding window)
+    #text, profile, length of kmer
+    #loop through text with k size windows (sliding window)
     prob_dict = {}
     for i in range(len(text) - k + 1):
         window = text[i:i+k]
@@ -22,7 +22,7 @@ def profile_most_probable_kmer(text: str, k: int,
             prob *= profile[j][window[j]]
         if window not in prob_dict:
             prob_dict[window] = prob
-    print(prob_dict)
+    #print(prob_dict)
 
     return max(prob_dict, key=prob_dict.get)
 
@@ -47,4 +47,4 @@ def profile(motif: list[str]):
 
 
 profile_ = profile(["ATGCG","TGGCG","TGACG","TTCCG", "GTACA"])
-print(profile_most_probable_kmer("ACCTGTTTATTGCCTAAGTTCCGGTACATTCCGAACAAACCCAATATAGCCCGAGGGCCT", 5, profile_))
+#print(profile_most_probable_kmer("ACCTGTTTATTGCCTAAGTTCCGGTACATTCCGAACAAACCCAATATAGCCCGAGGGCCT", 5, profile_))

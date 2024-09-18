@@ -21,11 +21,38 @@ def gibbs_sampler(dna: list[str], k: int, t: int, n: int) -> list[str]:
                 new_motifs.append(m)
         PROfile = profile(new_motifs)
         #Motifi ← Profile-randomly generated k-mer in the i-th sequence
-        i_motif = PROfile[i]
+        motif_i = PROfile[i] #Profile-randomly generated kmer (2.9.3)
+
 
     pass
 
-def profile(motif: list[str]):
+def profile_random_kmer(profilei: list[str], texti: str, k: int):
+    #slide window across str looking for k size kmers
+    kmers = []
+    for i in range(len(texti) - k + 1):
+        kmer = texti[i:i+k] 
+        kmers.append(kmer)
+    #given profile probabilities, whats the prob of each kmer?
+    k_probs = []
+    prob = 1
+    for i in range(len(kmer)):
+        prob *= profilei[i][kmer[i]]
+    
+    k_probs.append(prob)
+    #See 2.9.2 for how to get new ran values              #Laplace’s Rule of Succession
+    #new random values where new_prob = prob / 1 * prob_total
+    new_k_probs = []
+    total_prob = sum(k_probs) #total prob, divide by new percentage to add up to 1
+    for p in k_probs:
+        new_p = p / total_prob
+        new_k_probs.append(new_p)
+        #print(new_k_probs)
+    #How to select new random value? SEE TA
+    ran = random.randint(len(new_k_probs))
+pass
+
+
+def profile_w_pseudocounts(motif: list[str]):
     size = len(motif[0])
     length = len(motif)
     profile = []

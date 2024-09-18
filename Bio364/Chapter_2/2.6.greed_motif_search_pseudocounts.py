@@ -2,9 +2,9 @@ import sys
 
 # Please do not remove package declarations because these are used by the autograder.
 
-# Insert your greedy_motif_search function here, along with any subroutines you need
-def greedy_motif_search(dna: list[str], k: int, t: int) -> list[str]:
-    """Implements the GreedyMotifSearch algorithm."""    
+# Insert your greedy_motif_search_pseudocounts function here, along with any subroutines you need
+def greedy_motif_search_pseudocounts(dna: list[str], k: int, t: int) -> list[str]:
+    """Augments the GreedyMotifSearch algorithm with pseudocounts."""
     best_motifs = []
     for i in range(0, len(dna)):
         best_motifs.append(dna[i][0:k])
@@ -41,19 +41,19 @@ def profile_most_probable_kmer(text: str, k: int,
         
     return max(prob_dict, key=prob_dict.get)
 
-def profile(motif: list[str]):
+def profile(motif: list[str]): #NEEDS TO BE MODIFIED TO USE "Laplace's Rule of Succession to form Profile from motifs Motif1, …, Motifi-1"
     size = len(motif[0])
     length = len(motif)
     profile = []
     #count each nuc in each column
     for i in range(0, size):
-        chars = {'A':0, 'C':0, 'G':0, 'T':0}
+        chars = {'A':1, 'C':1, 'G':1, 'T':1}
         for j in range(0, len(motif)):
             chars[motif[j][i]] += 1
         
         #divide that by the number of rows
         for key in chars:
-            val = chars[key]/length
+            val = chars[key]/(length + 4)
             chars.update({key: val})
         profile.append(chars)
     return profile
@@ -79,9 +79,7 @@ def hamming_distance(p: str, q: str) -> int:
             #print(q[i])
             ham += 1
     return ham
-            
-            
-input = ["ACTGGTCAAA"]
-#12 25
 
-#print(profile(input))  
+motif = ["TTTG", "ATGG", "ATTG", "ACGG"]
+#print(profile(motif))
+
