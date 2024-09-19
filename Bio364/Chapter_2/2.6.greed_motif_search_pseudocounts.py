@@ -53,7 +53,7 @@ def profile(motif: list[str]): #NEEDS TO BE MODIFIED TO USE "Laplace's Rule of S
         
         #divide that by the number of rows
         for key in chars:
-            val = chars[key]/(length + 4)
+            val = chars[key]/(length + 4) #look into removing this 4, it works with and without it 
             chars.update({key: val})
         profile.append(chars)
     return profile
