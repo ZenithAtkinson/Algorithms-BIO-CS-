@@ -42,8 +42,7 @@ def test_primes_miller_rabin() -> None:
         assert call == "prime"
 
 
-composite_args = [24, 255, 6349202, 123456789, 248239522935, 593872957829392,
-                  409359300583028201801840123]
+composite_args = [24, 255, 6349202, 123456789, 248239522935, 593872957829392, 409359300583028201801840123]
 
 
 @max_score(5)
@@ -60,5 +59,6 @@ def test_composites_miller_rabin() -> None:
     """This function tests multiple known composite numbers to verify that your
     miller_rabin primality tests return 'composite'"""
     for N in composite_args:
-        call = fermat(N, 100)
+        call = miller_rabin(N, 100)
+        print(call,": ", N)
         assert call == "composite"
