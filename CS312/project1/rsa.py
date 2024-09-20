@@ -42,7 +42,7 @@ def generate_large_prime(bits=512) -> int:
     Use random.getrandbits(bits) to generate a random number of the
     specified bit length.
     """
-    bits = 20
+
     ran_num = random.getrandbits(bits)
     while True:
         ran_num = random.getrandbits(bits)
@@ -50,7 +50,7 @@ def generate_large_prime(bits=512) -> int:
             #print(ran_num," Is prime")
             return ran_num
 
-# Implement this function
+# Implement this function ---- THIS is the main function we need to implement, which will call all the other ones.
 def generate_key_pairs(bits: int) -> tuple[int, int, int]:
     """
     Generate RSA public and private key pairs.
@@ -58,25 +58,33 @@ def generate_key_pairs(bits: int) -> tuple[int, int, int]:
     - N must be the product of two random prime numbers p and q
     - e and d must be multiplicative inverses mod (p-1)(q-1)
     """
+    p = generate_large_prime(bits)
+    q = generate_large_prime(bits)
+    N = p*q
+    e = relative_prime(q, p)
+    pq = (p-1)*(q-1)
 
-    return 0, 0, 0
+    # d * e = 1 (mod (pq))
+    d = modinv(e, pq)
+
+    return N, e, d
 
 def relative_prime(q: int, p: int):
     pq = (p-1)*(q-1)
-    for e in reversed(primes):
-        if ext_euclid(e, pq)[2] > 1:
+    for e in primes:
+        if ext_euclid(e, pq)[2] == 1:
             return e
     return "failsafe: no e found"
 
 # We say x is the multiplicative inverse of a modulo N if ax ≡ 1 (mod N).
 #Compute d, the multiplicative inverse of e mod (p-1)(q-1)
 
-def multi_inverse(e: int, p: int, q: int):
-    pq = (p-1)*(q-1)
-    d = 2
-    while d * e % pq != 1:
-        d += d
-    return d
+def modinv(e: int, N: int) -> int:
+    x, y, z = ext_euclid(e, N)
+    if z != 1:
+        raise Exception('Modular inverse does not exist')
+    else:
+        return x % N #if neg
 
 
 def main(number: int):
@@ -88,12 +96,14 @@ def main(number: int):
     e = relative_prime(q,p)
     d = ext_euclid(p, q)[1]
     #e = ext_euclid(p, q)[0]
-    print("q:",q)
-    print("p:",p)
-    print("e:",e)
-    print("p*q:",p*q)
+    #print("q:",q)
+    #print("p:",p)
+    #print("Relative Prime e:",e)
+    #print("p*q:",p*q)
 
-    print("euclids algorithm for p and q:", ext_euclid(p, q))
+    #print("euclids algorithm for p and q:", ext_euclid(p, q))
+    keys = generate_key_pairs(512)
+    print(keys)
     #[2] = gcd
     #[1] =
     #[0] =

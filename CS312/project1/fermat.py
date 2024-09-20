@@ -2,6 +2,7 @@ import argparse
 import random
 
 #REMEMBER: Redownload the Project 1 files.
+#Add more composite tests
 
 
 # This is a convenience function for main(). You don't need to touch it.
@@ -9,17 +10,17 @@ def prime_test(N: int, k: int) -> tuple[str, str]:
     return fermat(N, k), miller_rabin(N, k)
 
 # You will need to implement this function and change the return value.
-def mod_exp(x: int, y: int, N: int) -> int: # 1
+def mod_exp(x: int, y: int, N: int) -> int: # 1 #n
     #x = bottom val
     #y = exponet val
     #N = number of bits
     if y == 0:
         return 1
-    z = mod_exp(x, (y//2), N)
+    z = mod_exp(x, (y//2), N)   # n^2
     if (y % 2) == 0:
-        return ((z**2) % (N))
+        return ((z**2) % (N)) #n^2
     else:
-        return ((x * (z**2)) % (N))
+        return ((x * (z**2)) % (N)) # n^2
 
 #def test_mod():
 #   print(mod_exp(2, 41, 5))
@@ -42,12 +43,12 @@ def mprobability(k: int) -> float: # 5 # NO IDEA IF THIS ACTUALLY WORKS
 # random.randint(low, hi) which gives a random integer between low and
 # hi, inclusive.
 def fermat(N: int, k: int) -> str: # 2
-    for a in range(1,k):
+    for a in range(1,k): #O(n)
         #a^(N-1) mod N ≠ 1
         #if (a**(N-1)) % N != 1:
         if (a >= N):
             break
-        if mod_exp(a, N-1, N) != 1:
+        if mod_exp(a, N-1, N) != 1: #O(n^3)
             return "composite"
     return "prime"
 
@@ -88,12 +89,12 @@ def miller_rabin(toTest, k):
         # (toTest - 1) = 2^(s) * d, solving for d
         d = toTest - 1
         s = 0
-        while((d % 2) == 0):
+        while((d % 2) == 0):#O(logn)
             d = (d // 2)
             s = s + 1
 
         # if a^d == 1 OR (toTest - 1), IS prime, otherwise it could be composite?
-        x = mod_exp(a,d,toTest)
+        x = mod_exp(a,d,toTest) #O(n^3)
         #square this thing s times, and try again^
         for _ in range(s):
             y = mod_exp(x,2,toTest) #square it
@@ -104,12 +105,6 @@ def miller_rabin(toTest, k):
     return "prime"
     # if we make it this many times through the loop without
     # finding reason to believe the number is composite, we'll assume it's prime
-
-def roundDown(n: int):
-    test = n % 2
-    if (test == 1):
-        n = n - 1
-    return n
 
 def main(number: int, k: int):
     print(miller_rabin(423, 100))
