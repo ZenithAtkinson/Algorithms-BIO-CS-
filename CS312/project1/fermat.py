@@ -32,7 +32,7 @@ def fprobability(k: int) -> float: # 3
 
 # You will need to implement this function and change the return value.
 def mprobability(k: int) -> float: # 5 # NO IDEA IF THIS ACTUALLY WORKS
-    percent = 1 / (2**k)
+    percent = 1 / (4**k)
     return percent
 
 
@@ -43,7 +43,7 @@ def mprobability(k: int) -> float: # 5 # NO IDEA IF THIS ACTUALLY WORKS
 # random.randint(low, hi) which gives a random integer between low and
 # hi, inclusive.
 def fermat(N: int, k: int) -> str: # 2
-    for a in range(1,k): #O(n)
+    for a in range(1,k+1): #O(n)
         #a^(N-1) mod N ≠ 1
         #if (a**(N-1)) % N != 1:
         if (a >= N):
@@ -73,42 +73,52 @@ prime_bases = [
     647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751
 ]
 
-def miller_rabin(toTest, k):
-    #quick check for being even...
-    if(toTest % 2 == 0):
-        if(toTest == 2):
+def miller_rabin(test, k):
+    if test <= 1: return "composite"
+    if test % 2 == 0:
+        if(test == 2):
             return "prime"
         else:
-            return "composite"
-    #more efficient algorithm, we're going to run tests on toTest - 1
-    for n in range(k):
-        a = prime_bases[n]
-        # we already know that the bases are prime
-        if(a == toTest):
+            return "composite"    
+        
+    # Write test - 1 as d * 2^s
+    d = test - 1
+    s = 0
+    while d % 2 == 0:
+        d //= 2
+        s += 1
+    # Perform the test k times
+    for i in range(k):
+        a = prime_bases[i] # using my prime bases
+        # which we know are prime
+        if(test == a):
             return "prime"
-        # (toTest - 1) = 2^(s) * d, solving for d
-        d = toTest - 1
-        s = 0
-        while((d % 2) == 0):#O(logn)
-            d = (d // 2)
-            s = s + 1
-
-        # if a^d == 1 OR (toTest - 1), IS prime, otherwise it could be composite?
-        x = mod_exp(a,d,toTest) #O(n^3)
-        #square this thing s times, and try again^
-        for _ in range(s):
-            y = mod_exp(x,2,toTest) #square it
-            if((y == 1) and (x != 1) and (x != (toTest - 1))):
+        # even numbers tend to be prime
+        if(test % 2 == 0):
+            if(test == 0):
+                return "prime"
+            else:
                 return "composite"
-            x = y
-
+        x = mod_exp(a, d, test)
+      
+        #splitting the three conditions
+        if ((x == 1) or (x == test - 1)):
+            continue
+        for _ in range(s - 1):  # Check at most s - 1 times
+            x = mod_exp(x, 2, test) # square it and try again x^(2t*u)
+            if x == test - 1:
+                break
+        else:
+            return "composite"  
+            # If we exit the loop without breaking, we're assuming composite
     return "prime"
     # if we make it this many times through the loop without
     # finding reason to believe the number is composite, we'll assume it's prime
 
 def main(number: int, k: int):
-    print(miller_rabin(423, 100))
-    print(fermat(423, 100))
+    #print("123456789 is:",fermat(409359300583028201801840123, 100))
+    #print(miller_rabin(423, 100))
+    #print(fermat(423, 100))
 
     fermat_call, miller_rabin_call = prime_test(number, k)
     fermat_prob = fprobability(k)
