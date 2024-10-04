@@ -75,7 +75,7 @@ def string_reconstruction_paired(patterns: List[Tuple[str, str]], k: int):
     #following path
     for node in path[1:]:
         #print(node)
-        prefix_string += node[0][-1]
+        prefix_string += node[0][0]
         suffix_string += node[1][-1]
 
     return prefix_string, suffix_string

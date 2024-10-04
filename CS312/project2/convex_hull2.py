@@ -1,117 +1,230 @@
-# Uncomment this line to import some functions that can help
-# you debug your algorithm
-# from plotting import draw_line, draw_hull, circle_point
+# convex_hull.py
 
+from typing import List, Tuple
 
-def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
-            # point A (x,y)                 # point B (x,y)
-    # edges = list[tuple[tuple[float, float], tuple[float, float]]]
-    """Return the subset of provided points that define the convex hull"""
+def compute_hull(points: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    """
+    Computes the convex hull of a set of 2D points using the Divide and Conquer algorithm.
 
-    # sort the array #
-    sortedPoints = sorted(points) # assuming this sorts by x-chords, assuming this is time n * log(n)
+    Args:
+        points (List[Tuple[float, float]]): A list of (x, y) tuples representing the points.
 
-    if len(points) <= 3:
-        # if there's only three, all are included #
-        return sortedPoints
+    Returns:
+        List[Tuple[float, float]]: The convex hull as a list of points in counter-clockwise order.
+    """
 
-    # split array recursively #
-    midpoint = len(points) // 2
-    # splitting array in two. start to mid, and mid to end #
-    leftHull = compute_hull(sortedPoints[:midpoint])  # left hull
-    rightHull = compute_hull(sortedPoints[midpoint:])  # right hull
+    # Edge Cases: No points or a single point
+    if not points:
+        return []
+    if len(points) == 1:
+        return points.copy()
 
+    # Remove duplicate points and sort the points by x-coordinate, then by y-coordinate
+    points_sorted = sorted(set(points), key=lambda p: (p[0], p[1]))  # O(n log n)
 
-    # these are the original keypoints, will use them to find the four points that will direct the merge #
-    keyPoint_left = leftHull[-1]
-    keyPoint_right = rightHull[0]
+    def Orientation(p: Tuple[float, float], q: Tuple[float, float], r: Tuple[float, float]) -> int:
+        """
+        Determines the Orientation of an ordered triplet (p, q, r).
 
-    # these will be reassigned to be the two points defining the TOP of the merged shape #
-    upperTangent_left = leftHull[-1]
-    upperTangent_right = rightHull[0]
+        Returns:
+            0 -> Colinear
+            1 -> Clockwise
+            2 -> CounterClockwise
+        """
+        val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1])
+        epsilon = 1e-12
+        if abs(val) < epsilon:
+            return 0  # Colinear
+        elif val > 0:
+            return 1  # Clockwise
+        else:
+            return 2  # CounterClockwise
 
-    # these will be reassigned to be the two points defining the BOTTOM of the merged shape #
-    lowerTangent_left = leftHull[-1]
-    lowerTangent_right = rightHull[0]
+    def find_rightmost_point(Hull: List[Tuple[float, float]]) -> Tuple[float, float]:
+        """
+        Returns the rightmost point in the hull. If multiple, returns the topmost.
+        """
+        return max(Hull, key=lambda p: (p[0], p[1]))
 
-    leftHullSize = len(leftHull)
-    rightHullSize = len(rightHull)
+    def find_leftmost_point(Hull: List[Tuple[float, float]]) -> Tuple[float, float]:
+        """
+        Returns the leftmost point in the hull. If multiple, returns the bottommost.
+        """
+        return min(Hull, key=lambda p: (p[0], p[1]))
 
-    # find the greatest/least slopes (+/-) between the keyPoint on the left and any point within the right hull #
- 
+    def get_index(Hull: List[Tuple[float, float]], point: Tuple[float, float]) -> int:
+        """
+        Returns the index of the given point in the hull.
+        """
+        for idx, p in enumerate(Hull):
+            if p == point:
+                return idx
+        raise ValueError("Point not found in hull.")
 
+    def find_upper_tangent(Hull_L: List[Tuple[float, float]], Hull_R: List[Tuple[float, float]]) -> Tuple[int, int]:
+        """
+        Finds the indices of the upper tangent between Hull_L and Hull_R.
 
-    # find the smallest slope (-) between all points on the left and the newly assigned keyPoint on the right hull #
-    for i in range(leftHullSize):
-        # looking for the extreme slopes using the newly defined upper/lower right tangent points #
-        greatestNegativeSlope = calculateSlope(keyPoint_left, upperTangent_right)
-        greatestPositiveSlope = calculateSlope(keyPoint_left, lowerTangent_right)
-        #these initial values SHOULD be overwritten quickly, their names
+        Returns:
+            Tuple[int, int]: Indices (i, j) in Hull_L and Hull_R respectively.
+        """
+        i = get_index(Hull_L, find_rightmost_point(Hull_L))
+        j = get_index(Hull_R, find_leftmost_point(Hull_R))
 
-        # keypoint left starts as the rightmost, but does not have to stay as that point... prolly shouldn't #
-        if calculateSlope(leftHull[i], upperTangent_right) < greatestNegativeSlope:
-            upperTangent_left = leftHull[i]
+        done = False
+        while not done:
+            done = True
+            # Move i counter-clockwise as long as the tangent is not upper
+            while True:
+                next_i = (i + 1) % len(Hull_L)
+                o = Orientation(Hull_L[i], Hull_R[j], Hull_L[next_i])
+                if o == 2:  # CounterClockwise
+                    i = next_i
+                    done = False
+                else:
+                    break
+            # Move j clockwise as long as the tangent is not upper
+            while True:
+                prev_j = (j - 1 + len(Hull_R)) % len(Hull_R)
+                o = Orientation(Hull_L[i], Hull_R[j], Hull_R[prev_j])
+                if o == 1:  # Clockwise
+                    j = prev_j
+                    done = False
+                else:
+                    break
+        return i, j
 
-        if calculateSlope(leftHull[i], lowerTangent_right) > greatestPositiveSlope:
-            lowerTangent_left = leftHull[i]
+    def find_lower_tangent(Hull_L: List[Tuple[float, float]], Hull_R: List[Tuple[float, float]]) -> Tuple[int, int]:
+        """
+        Finds the indices of the lower tangent between Hull_L and Hull_R.
 
-    # remove former key points, add in the tangent points #
-    sortedPoints.remove(keyPoint_left)
-    sortedPoints.remove(keyPoint_right)
+        Returns:
+            Tuple[int, int]: Indices (i, j) in Hull_L and Hull_R respectively.
+        """
+        i = get_index(Hull_L, find_rightmost_point(Hull_L))
+        j = get_index(Hull_R, find_leftmost_point(Hull_R))
 
-    sortedPoints.append(upperTangent_left)
-    sortedPoints.append(upperTangent_right)
-    sortedPoints.append(lowerTangent_left)
-    sortedPoints.append(lowerTangent_right)
+        done = False
+        while not done:
+            done = True
+            # Move i clockwise as long as the tangent is not lower
+            while True:
+                prev_i = (i - 1 + len(Hull_L)) % len(Hull_L)
+                o = Orientation(Hull_L[i], Hull_R[j], Hull_L[prev_i])
+                if o == 1:  # Clockwise
+                    i = prev_i
+                    done = False
+                else:
+                    break
+            # Move j counter-clockwise as long as the tangent is not lower
+            while True:
+                next_j = (j + 1) % len(Hull_R)
+                o = Orientation(Hull_L[i], Hull_R[j], Hull_R[next_j])
+                if o == 2:  # CounterClockwise
+                    j = next_j
+                    done = False
+                else:
+                    break
+        return i, j
 
-    # secure the tuples
-    return sortedPoints
+    def merge_hulls(Hull_L: List[Tuple[float, float]], Hull_R: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+        """
+        Merges two convex hulls into one convex hull.
 
-def calculateSlope(left: tuple[float, float], right: tuple[float, float]):
-    rise = right[1] - left[1] # right's Y chord - left's Y chord
-    run = right[0] - left[0] # right's X chord - left's X chord
-    return rise/run
+        Args:
+            Hull_L (List[Tuple[float, float]]): Left convex hull.
+            Hull_R (List[Tuple[float, float]]): Right convex hull.
 
+        Returns:
+            List[Tuple[float, float]]: Merged convex hull.
+        """
+        # Find upper and lower tangents
+        i_upper, j_upper = find_upper_tangent(Hull_L, Hull_R)
+        i_lower, j_lower = find_lower_tangent(Hull_L, Hull_R)
 
-#L is equal to our left hull
-#R is equal to our right hull
-def find_upper_tangent(L, R):
-    # Find the rightmost point in L and the leftmost point in R
-    pperTangent_left = L[-1]   # Rightmost point of left hull
-    upperTangent_right = R[0]  
-    
-    def is_upper_tangent(p, q, L):
-        # Check if line pq is the upper tangent to L
-        idx_p = L.index(p)
-        prev_p = L[idx_p - 1] if idx_p > 0 else L[-1]
-        next_p = L[(idx_p + 1) % len(L)]
-        return (cross_product(p, q, prev_p) >= 0 and cross_product(p, q, next_p) >= 0)
+        # Initialize merged hull
+        merged_hull = []
 
-    def cross_product(o, a, b):
-        # Cross product of vectors OA and OB
-        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+        # Add points from Hull_L from i_upper to i_lower (inclusive)
+        index = i_upper
+        merged_hull.append(Hull_L[index])
+        while index != i_lower:
+            index = (index + 1) % len(Hull_L)
+            merged_hull.append(Hull_L[index])
 
-    done = False
-    while not done:
-        done = True
-        
-        # Move p counterclockwise in L while pq is not an upper tangent to L
-        while not is_upper_tangent(p, q, L):
-            p_idx = L.index(p)
-            p = L[(p_idx - 1) % len(L)]  # Move counterclockwise in L
-            done = False
-        
-        # Move q clockwise in R while pq is not an upper tangent to R
-        while not is_upper_tangent(q, p, R):  # Here we reverse the order to check tangent on R
-            q_idx = R.index(q)
-            q = R[(q_idx + 1) % len(R)]  # Move clockwise in R
-            done = False
+        # Add points from Hull_R from j_lower to j_upper (inclusive)
+        index = j_lower
+        merged_hull.append(Hull_R[index])
+        while index != j_upper:
+            index = (index + 1) % len(Hull_R)
+            merged_hull.append(Hull_R[index])
 
-    return (p, q)
+        return merged_hull
 
-# Example input convex hulls (list of points) L and R
-L = [(1, 1), (2, 3), (3, 4), (4, 2)]
-R = [(5, 2), (6, 3), (7, 1)]
+    def divide_and_conquer(Q_sorted: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+        """
+        Recursively divides the set of points and merges the convex hulls.
 
-upper_tangent = find_upper_tangent(L, R)
-print("Upper Tangent Points:", upper_tangent)
+        Args:
+            Q_sorted (List[Tuple[float, float]]): Sorted list of points.
+
+        Returns:
+            List[Tuple[float, float]]: Convex hull as a list of points in counter-clockwise order.
+        """
+        n = len(Q_sorted)
+
+        # Base Cases
+        if n == 1:
+            return Q_sorted.copy()
+        elif n == 2:
+            return Q_sorted.copy()
+        elif n == 3:
+            p1, p2, p3 = Q_sorted
+            o = Orientation(p1, p2, p3)
+            if o == 2:
+                return [p1, p2, p3]
+            elif o == 1:
+                return [p1, p3, p2]
+            else:
+                # Colinear points: return endpoints
+                sorted_pts = sorted(Q_sorted, key=lambda p: (p[0], p[1]))
+                return [sorted_pts[0], sorted_pts[-1]]
+
+        # Divide
+        mid = n // 2
+        L = Q_sorted[:mid]
+        R = Q_sorted[mid:]
+
+        # Conquer
+        Hull_L = divide_and_conquer(L)  # T(n/2)
+        Hull_R = divide_and_conquer(R)  # T(n/2)
+
+        # Merge
+        merged_hull = merge_hulls(Hull_L, Hull_R)  # O(n)
+        return merged_hull
+
+    # Start the divide and conquer process
+    convex_hull = divide_and_conquer(points_sorted)  # O(n log n)
+
+    # Ensure the hull is in counter-clockwise order
+    def is_counter_clockwise(hull: List[Tuple[float, float]]) -> bool:
+        """
+        Checks if the hull is in counter-clockwise order.
+
+        Args:
+            hull (List[Tuple[float, float]]): Convex hull.
+
+        Returns:
+            bool: True if counter-clockwise, False otherwise.
+        """
+        area = 0.0
+        n = len(hull)
+        for i in range(n):
+            j = (i + 1) % n
+            area += (hull[i][0] * hull[j][1]) - (hull[j][0] * hull[i][1])
+        return area > 0
+
+    if not is_counter_clockwise(convex_hull):
+        convex_hull.reverse()
+
+    return convex_hull

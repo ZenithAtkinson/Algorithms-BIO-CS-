@@ -1,83 +1,126 @@
-# Uncomment this line to import some functions that can help
-# you debug your algorithm
-# from plotting import draw_line, draw_hull, circle_point
+from typing import List, Tuple
+
+def compute_hull(points: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+
+    points.sort()  # Sorting
+    unique_points = [] # Removing the dupes
+    for point in points:
+        if len(unique_points) == 0 or unique_points[-1] != point:
+            unique_points.append(point)
+    points = unique_points
+
+    # Base case: if less than or equal to 1 point, just return it (there cant be a convex hull if theres just 1 point dug)
+    if len(points) <= 1:
+        return points
+     #Edge Cases: no points or a single point
+    #if not points:
+    #    return []
+    #if len(points) == 1:
+    #    return points.copy()
+
+    points.sort() #Sort for horizontal vals
+    
+    # left and right halves
+    mid = len(points) // 2
+     #print(mid) 
+    l_points = points[:mid]
+    r_points = points[mid:]
+    #print(l_points) 
+    #print(r_points)
+    
+    # Recursively for both
+    l_hull = compute_hull(l_points)
+    r_hull = compute_hull(r_points)
+
+    #index = i_upper
+        #merged_hull.append(Hull_L[index])
+    return merge_hulls(l_hull, r_hull)
 
 
-def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
-            # point A (x,y)                 # point B (x,y)
-    # edges = list[tuple[tuple[float, float], tuple[float, float]]]
-    """Return the subset of provided points that define the convex hull"""
+#Look into using grahams
+def merge_hulls(left_hull: List[Tuple[float, float]], right_hull: List[Tuple[float, float]]):
+    up_l, up_R = find_upper_tangent(left_hull, right_hull)
+    lower_L, lower_R = find_lower_tangent(left_hull, right_hull)
+    merged_hull = []
+    
+    # lower_left -> up_left on left (clockwise)
+    clock_hand = lower_L
+    merged_hull.append(left_hull[clock_hand])
+    while clock_hand != up_l:
+        clock_hand = (clock_hand + 1) % len(left_hull)
+        merged_hull.append(left_hull[clock_hand])
+    
+    # up_right -> lower_right on right (clockwise )
+    clock_hand2 = up_R
+    merged_hull.append(right_hull[clock_hand2])
+    while clock_hand2 != lower_R:
+        clock_hand2 = (clock_hand2 + 1) % len(right_hull)
+        merged_hull.append(right_hull[clock_hand2])
+    
+    return merged_hull
 
-    # sort the array #
-    sortedPoints = sorted(points) # assuming this sorts by x-chords, assuming this is time n * log(n)
+def find_upper_tangent(left_hull: List[Tuple[float, float]], right_hull: List[Tuple[float, float]]):
+    # indices to rightmost point of left_hull and leftmost point of right_hull
+    #https://www.freecodecamp.org/news/lambda-expressions-in-python/
+    #https://codesarray.com/view/Lambda-Functions-in-Python
+    leftside = max(range(len(left_hull)), key=lambda i: left_hull[i][0])
+    rightside = min(range(len(right_hull)), key=lambda i: right_hull[i][0])
+    DONE = False
+    while not DONE:
+        DONE = True
+        #  counterclockwise
+        while Orientation(right_hull[rightside], left_hull[leftside], left_hull[(leftside - 1) % len(left_hull)]) > 0:
+            # USING MOD, wraps around and makes the list circular (never below 0 or above max length)
+            leftside = (leftside - 1) % len(left_hull)
+            #print(leftside)
+            DONE = False
+        # clockwise
+        while Orientation(left_hull[leftside], right_hull[rightside], right_hull[(rightside + 1) % len(right_hull)]) < 0:
+            # USING MOD, wraps around and makes the list circular (never below 0 or above max length)
+            rightside = (rightside + 1) % len(right_hull)
+            DONE = False
+    return leftside, rightside
 
-    if len(points) <= 3:
-        # if there's only three, all are included #
-        return sortedPoints
+def find_lower_tangent(left_hull: List[Tuple[float, float]], right_hull: List[Tuple[float, float]]):
+    # indices to rightmost point of left_hull and leftmost point of right_hull
+    #https://www.freecodecamp.org/news/lambda-expressions-in-python/
+    #https://codesarray.com/view/Lambda-Functions-in-Python
+    leftside = max(range(len(left_hull)), key=lambda i: left_hull[i][0])
+    rightside = min(range(len(right_hull)), key=lambda i: right_hull[i][0])
+    
+    done = False
+    while not done:
+        done = True
+        # clockwise
+        #i = next_i
+        #o = Orientation(left_hull[i], right_hull[j], right_hull[prev_j])
+        while Orientation(right_hull[rightside], left_hull[leftside], left_hull[(leftside + 1) % len(left_hull)]) < 0:
+            # USING MOD, wraps around and makes the list circular (never below 0 or above max length)
+            leftside = (leftside + 1) % len(left_hull)
+            #print(leftside)
+            done = False
+        #  counterclockwise
+        while Orientation(left_hull[leftside], right_hull[rightside], right_hull[(rightside - 1) % len(right_hull)]) > 0:
+            # USING MOD, wraps around and makes the list circular (never below 0 or above max length)
+            rightside = (rightside - 1) % len(right_hull)
+            done = False
+    return leftside, rightside
 
-    # split array recursively #
-    midpoint = len(points) // 2
-    # splitting array in two. start to mid, and mid to end #
-    leftHull = compute_hull(sortedPoints[:midpoint])  # left hull
-    rightHull = compute_hull(sortedPoints[midpoint:])  # right hull
+def Orientation(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]): # O(1)
+    #help from geek for geeks, but basically is positive of p1, p2, p3 are counterclocksise in order
+    return (p2[0] - p1[0])*(p3[1] - p1[1]) - (p2[1] - p1[1])*(p3[0] - p1[0])
 
 
-    # these are the original keypoints, will use them to find the four points that will direct the merge #
-    keyPoint_left = leftHull[-1]
-    keyPoint_right = rightHull[0]
-
-    # these will be reassigned to be the two points defining the TOP of the merged shape #
-    upperTangent_left = leftHull[-1]
-    upperTangent_right = rightHull[0]
-
-    # these will be reassigned to be the two points defining the BOTTOM of the merged shape #
-    lowerTangent_left = leftHull[-1]
-    lowerTangent_right = rightHull[0]
-
-    leftHullSize = len(leftHull)
-    rightHullSize = len(rightHull)
-
-    # find the greatest/least slopes (+/-) between the keyPoint on the left and any point within the right hull #
-    for i in range(rightHullSize):
-        # looking for the extreme slopes #
-        greatestPositiveSlope = calculateSlope(keyPoint_left, upperTangent_right)
-        greatestNegativeSlope = calculateSlope(keyPoint_left, lowerTangent_right)
-
-        if calculateSlope(keyPoint_left, rightHull[i]) > greatestPositiveSlope:
-            upperTangent_right = rightHull[i]
-
-        if calculateSlope(keyPoint_left, rightHull[i]) < greatestNegativeSlope:
-            lowerTangent_right = rightHull[i]
-
-            
-
-    # find the smallest slope (-) between all points on the left and the newly assigned keyPoint on the right hull #
-    for i in range(leftHullSize):
-        # looking for the extreme slopes using the newly defined upper/lower right tangent points #
-        greatestNegativeSlope = calculateSlope(keyPoint_left, upperTangent_right)
-        greatestPositiveSlope = calculateSlope(keyPoint_left, lowerTangent_right)
-        #these initial values SHOULD be overwritten quickly, their names
-
-        # keypoint left starts as the rightmost, but does not have to stay as that point... prolly shouldn't #
-        if calculateSlope(leftHull[i], upperTangent_right) < greatestNegativeSlope:
-            upperTangent_left = leftHull[i]
-
-        if calculateSlope(leftHull[i], lowerTangent_right) > greatestPositiveSlope:
-            lowerTangent_left = leftHull[i]
-
-    # remove former key points, add in the tangent points #
-    sortedPoints.remove(keyPoint_left)
-    sortedPoints.remove(keyPoint_right)
-
-    sortedPoints.append(upperTangent_left)
-    sortedPoints.append(upperTangent_right)
-    sortedPoints.append(lowerTangent_left)
-    sortedPoints.append(lowerTangent_right)
-
-    # secure the tuples
-    return sortedPoints
-
-def calculateSlope(left: tuple[float, float], right: tuple[float, float]):
-    rise = right[1] - left[1] # right's Y chord - left's Y chord
-    run = right[0] - left[0] # right's X chord - left's X chord
-    return rise/run
+#def is_counter_clockwise(hull: List[Tuple[float, float]]) -> bool:
+#        area = 0
+#        n = len(hull)
+#        for i in range(n):
+#            j = (i + 1) % n
+#            area += (hull[i][0] * hull[j][1]) - (hull[j][0] * hull[i][1])
+#
+#
+#        return area > 0
+#
+#    if not is_counter_clockwise(convex_hull):
+#        convex_hull.reverse()
+#
