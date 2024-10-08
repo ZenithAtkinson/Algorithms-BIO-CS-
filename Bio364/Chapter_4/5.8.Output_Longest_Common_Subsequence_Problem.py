@@ -22,38 +22,38 @@ def longest_common_subsequence(s: str, t: str) -> str:
 
 def LCSBackTrack(v: str, w: str):
     score = []
-    #Do i need to add all 0 values to the full score?
+    #all 0 values to the full score?
     for i in range(len(v)+1):
         row = []
         for j in range(len(w)+1):
             row.append(0)
         score.append(row)
 
-    #backtrack init (like score, its a matrix)
+    #backtrack init (like score, a matrix)
     Backtrack = []
     for i in range(len(v)+1):
         row = []
         for j in range(len(w)+1):
-            row.append(0)
+            row.append("")
         Backtrack.append(row)
 
-    for i in range (len(v)+1):
-        score[i][0] = 0
-    for j in range (len(w)):
-        score[0][j] = 0
+#    for i in range (len(v)+1):
+#        score[i][0] = ""
+#    for j in range (len(w)+1):
+#        score[0][j] = ""
 
-    for i in range (1,len(v)):
-        for j in range (1,len(w)):
+    for i in range (1, len(v)+1): #leave 0 col for base case 0's
+        for j in range (1, len(w)+1):
             match = 0
-            if v[i]-1 == w[j-1]: # str to int convert?
-                match = 0
-            #si, j ← max{si-1, j , si,j-1 , si-1, j-1 + match }
-            s[i][j] = max(s[i-1][j], s[i][j-1], s[i-1][j-1] + match)
-            if s[i][j] == s[i-1][j]:
+            if v[i-1] == w[j-1]: # str to int convert?
+                match = 1
+            #si, j ← max{si-1, j , si,j-1 , si-1, j-1 + match } : up, left, diagonal : s is score
+            score[i][j] = max(score[i-1][j], score[i][j-1], score[i-1][j-1] + match)
+            if score[i][j] == score[i-1][j]:
                 Backtrack[i][j] = "v"
-            elif s[i][j] == s[i][j-1]:
+            elif score[i][j] == score[i][j-1]:
                 Backtrack[i][j] = "->"
-            elif s[i][j] == s[i-1][j-1+match]:#si, j = si-1, j-1 + match
+            elif score[i][j] == score[i-1][j-1]+match:#si, j = si-1, j-1 + match
                 Backtrack[i][j] = "↘"
             else:
                 print("n/a err")
@@ -68,7 +68,7 @@ def OutputLCS(backtrack, v, i, j):
     elif backtrack[i][j] == "->":
         return OutputLCS(backtrack, v, i, j - 1)
     else:
-        return OutputLCS(backtrack, v, i - 1, j - 1) + v[i]
+        return OutputLCS(backtrack, v, i - 1, j - 1) + v[i -1]
 
     pass
 
