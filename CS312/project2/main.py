@@ -1,25 +1,11 @@
 import argparse
 from time import time
-from typing import List, Tuple
 import statistics
 import matplotlib.pyplot as plt
+import numpy as np
 
 from generate import generate_random_points
 from convex_hull import compute_hull
-from plotting import plot_points, draw_hull, title, show_plot
-
-def main(n: int, distribution: str, seed: int | None):
-    points = generate_random_points(distribution, n, seed)
-    plot_points(points)
-
-    start = time()
-    hull_points = compute_hull(points)
-    end = time()
-
-    draw_hull(hull_points)
-    title(f'{n} {distribution} points: {round(end - start, 4)} seconds')
-    show_plot()
-
 
 def run_experiments():
     """
@@ -27,13 +13,13 @@ def run_experiments():
     Generates datasets of varying sizes, measures execution times, and plots the results.
     """
     # Define dataset sizes (adjust as needed)
-    dataset_sizes = [10, 100, 1000, 5000, 10000, 50000, 100000]
+    dataset_sizes = [10, 100, 1000, 10000, 50000, 100000, 500000, 1000000]
     runs_per_size = 5  # Number of runs per dataset size for averaging
     execution_times = []  # To store mean execution times for each dataset size
 
     for n in dataset_sizes:
         print(f"\nGenerating {n} random points...")
-        points = generate_random_points('uniform', n, seed=None)  # You can vary the distribution if needed
+        points = generate_random_points('uniform', n, seed=None)
 
         print(f"Measuring execution time for {n} points over {runs_per_size} runs...")
         times = []  # To store execution times for current dataset size
@@ -50,12 +36,49 @@ def run_experiments():
         execution_times.append(mean_time)
         print(f"Mean execution time for {n} points: {mean_time:.6f} seconds")
 
-    # Plotting the results
+    # Convert lists to numpy arrays for calculations
+    n_values = np.array(dataset_sizes)
+    execution_times = np.array(execution_times)
+
+    # Compute theoretical time complexities (without scaling constants)
+    t_n_log_n = n_values * np.log(n_values)
+    t_n = n_values
+    t_n_squared = n_values ** 2
+    t_log_n = np.log(n_values)
+
+    # Scaling factors to make the theoretical curves pass through the first data point
+    c_n_log_n = execution_times[0] / t_n_log_n[0]
+    c_n = execution_times[0] / t_n[0]
+    c_n_squared = execution_times[0] / t_n_squared[0]
+    c_log_n = execution_times[0] / t_log_n[0]
+
+    # Debugging: Print the scaling factors to verify
+    print(f"Scaling Factors: \nO(n log n): {c_n_log_n}, O(n): {c_n}, O(n²): {c_n_squared}, O(log n): {c_log_n}")
+
+    # Scaled theoretical times
+    y_n_log_n = c_n_log_n * t_n_log_n
+    y_n = c_n * t_n
+    y_n_squared = c_n_squared * t_n_squared
+    y_log_n = c_log_n * t_log_n
+
+    # Check if any scaling values are too large or too small
+    print(f"y_n_log_n: {y_n_log_n}")
+    print(f"y_n_squared: {y_n_squared}")
+
+    # Plotting the results with adjusted y-axis limits
     plt.figure(figsize=(10, 6))
-    plt.plot(dataset_sizes, execution_times, marker='o', linestyle='-', color='b', label=' Time')
+    plt.plot(n_values, execution_times, marker='o', linestyle='-', color='b', label='Measured Time')
+    plt.plot(n_values, y_n_log_n, linestyle='--', label='O(n log n)')
+    plt.plot(n_values, y_n, linestyle='--', label='O(n)')
+    plt.plot(n_values, y_n_squared, linestyle='--', label='O(n²)')
+    plt.plot(n_values, y_log_n, linestyle='--', label='O(log n)')
+
+    # Dynamically set the y-axis limit based on data
+    plt.ylim(min(execution_times) * 0.1, max(y_n_squared) * 1.1)  # Adjust based on data range
+
     plt.title('Divide and Conquer Convex Hull Algorithm Performance')
     plt.xlabel('Number of Points (n)')
-    plt.ylabel(' Time (seconds)')
+    plt.ylabel('Time (seconds)')
     plt.xscale('log')
     plt.yscale('log')
     plt.grid(True, which="both", ls="--", linewidth=0.5)
@@ -65,33 +88,9 @@ def run_experiments():
     plt.show()
 
 if __name__ == '__main__':
-
-    # To debug or run in your IDE
-    # you can uncomment the lines below and modify the arguments as needed
-    # import sys
-    # sys.argv = ['main.py', '-n', '10', '--seed', '312', '--debug']
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', type=int, help='The number of points to generate', default=10)
-    parser.add_argument('-d', '--dist', '--distribution',
-                        help='The distribution from which to generate points',
-                        default='uniform'
-                        )
-    parser.add_argument('--seed', type=int, default=None, help="Random seed")
-    parser.add_argument('--debug', action='store_true', help='Turn on debug plotting')
-    parser.add_argument('--experiment', action='store_true', help='Run experimental evaluation')  # New argument
+    parser.add_argument('--experiment', action='store_true', help='Run experimental evaluation')
     args = parser.parse_args()
-
-    if args.debug:
-        # To debug your algorithm with incremental plotting:
-        # - run this script with --debug (e.g. add '--debug' to the sys.argv above)
-        # - set breakpoints
-        # As you step through your code, you will see the plot update as you go
-        import matplotlib.pyplot as plt
-        plt.switch_backend('QtAgg')
-        plt.ion()
 
     if args.experiment:
         run_experiments()
-    else:
-        main(args.n, args.dist, args.seed)

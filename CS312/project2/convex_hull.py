@@ -27,7 +27,7 @@ def compute_hull(points: List[Tuple[float, float]]) -> List[Tuple[float, float]]
     r_points = points[mid:]
     #print(l_points) 
     #print(r_points)
-    
+
     # Recursively for both
     l_hull = compute_hull(l_points)
     r_hull = compute_hull(r_points)
