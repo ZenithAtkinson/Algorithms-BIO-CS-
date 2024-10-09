@@ -4,8 +4,7 @@ import openai
 from pathlib import Path
 
 # Set your OpenAI API key
-openai.api_key = "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"
-
+openai.api_key = ""
 # Define the text to convert to speech
 text = "Today is a wonderful day to build something people love!"
 
