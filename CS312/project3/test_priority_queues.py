@@ -1,4 +1,5 @@
-from priority_queues import ArrayPQ, HeapPQ
+# NOT NEEDED??
+from priority_queue_heap_array import ArrayPQ, HeapPQ
 
 
 def test_pqs():

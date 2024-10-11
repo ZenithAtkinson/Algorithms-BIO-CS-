@@ -102,6 +102,15 @@ if __name__ == '__main__':
     parser.add_argument('--target', type=int, default=None, help='Target node')
     parser.add_argument('--debug', action='store_true', help='Turn on debug plotting')
     args = parser.parse_args()
+    
+    """ n - the number of nodes in your network
+    seed - the random seed for generating your network
+    density - the fraction of possible edges in the network that are present
+    noise - how non-euclidean the edge weights are
+    If the noise is 0, the shortest path will be the direct edge from A to B (if the edge exists). If the noise is non-zero, it's possible the shortest path will include intermediate steps.
+    source - the node to start at (all nodes are identified by integers in 0..n-1)
+    target - the node to end at
+    debug - whether to turn on interactive plotting (you'll need pyqt installed for this to work) """
 
     if args.debug:
         # To debug your algorithm with incremental plotting:

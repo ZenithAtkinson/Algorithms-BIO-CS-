@@ -1,5 +1,7 @@
+import priority_queue_heap_array
+
 def find_shortest_path_with_heap(
-        graph: list[list[float]],
+        graph: dict[int, dict[int, float]],
         source: int,
         target: int
 ) -> tuple[list[int], float]:
@@ -14,7 +16,7 @@ def find_shortest_path_with_heap(
 
 
 def find_shortest_path_with_array(
-        graph: list[list[float]],
+        graph: dict[int, dict[int, float]],
         source: int,
         target: int
 ) -> tuple[list[int], float]:

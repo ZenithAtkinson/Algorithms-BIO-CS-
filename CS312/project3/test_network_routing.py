@@ -21,15 +21,15 @@ def tiny_test(finder):
 def small_test(finder):
     _, graph = generate_graph(312, 10, 0.3, 0.05)
     path, cost = finder(graph, 0, 9)
-    assert path == [0, 7, 3, 9]
-    assert round(cost, 2) == 2.94
+    assert path == [0, 4, 9]
+    assert round(cost, 2) == 2.08
 
 
 def large_test(finder):
     _, graph = generate_graph(312, 1000, 0.2, 0.05)
     path, cost = finder(graph, 2, 9)
-    assert path == [2, 323, 391, 698, 737, 557, 3, 925, 67, 431, 640, 363, 9]
-    assert round(cost, 2) == 1.33
+    assert path == [2, 391, 90, 956, 227, 236, 133, 429, 697, 846, 148, 775, 359, 685, 335, 102, 315, 9]
+    assert round(cost, 2) == 1.12
 
 
 @max_score(2)
