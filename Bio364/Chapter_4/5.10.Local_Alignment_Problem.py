@@ -9,7 +9,7 @@ def local_alignment(match_reward: int, mismatch_penalty: int, indel_penalty: int
     """
     Compute the local alignment of two strings based on match reward, mismatch penalty, and indel penalty.
     """
-    #STEP BY STEP:
+    #STEP BY STEP (ask eric about 2):
     # 1: Find highest count (local sink) either make a new double nested loop with a highest count or by tracking as we make the arrows
     # 2: Follow arrows from max count to top left, either by just checking arrow values or making a new backtrack(?)
     # 3: add character following backtrack until you reach a cell with a score of 0.
@@ -58,7 +58,7 @@ def LCSBackTrack(v: str, w: str, match_reward: int, mismatch_penalty: int, indel
     return(Backtrack, score)
 
 def OutputLCS(backtrack, v, w, i, j, score) -> tuple[str, str]: #score for knowing when to ter
-    #im gonna do iterative with while loop? 
+    #iterative with while loop vs recursion?
     align_s = "" #1st str
     align_t = "" #2nd str
 
