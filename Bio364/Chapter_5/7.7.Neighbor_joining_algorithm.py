@@ -13,6 +13,11 @@ def neighbor_joining(n: int,  distance_matrix: List[List[int]]) -> List[str]:
 
     pass
 
+#pass:
+#dict[int, list[int]]
+#return:
+#dict[int, dict[int, float]]
+
 
 n = 4
 distance_matrix = [
