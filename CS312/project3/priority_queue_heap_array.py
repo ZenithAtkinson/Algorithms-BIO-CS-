@@ -50,7 +50,7 @@ class log_with_binary_heap:
     
     def delete_min(vals):
         # Swap with last element, then heapify down
-        vals._swap(0, len(vals.heap) - 1)
+        vals.swap(0, len(vals.heap) - 1)
 
         smallest_node, smallest_key = vals.heap.pop() #Popping OG root from bfore
         del vals.pos_map[smallest_node]
@@ -74,7 +74,7 @@ class log_with_binary_heap:
         parnt_index = (index - 1) // 2
 
         while index > 0 and vals.heap[index][1] < vals.heap[parnt_index][1]:
-            vals._swap(index, parnt_index)
+            vals.swap(index, parnt_index)
             index = parnt_index
             parnt_index = (index - 1) // 2
     
