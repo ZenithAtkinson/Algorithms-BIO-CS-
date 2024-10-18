@@ -72,8 +72,8 @@ def OutputLCS(backtrack, v, i, j):
 
     pass
 
-s = "GACT"
-t = "ATG"
+s = "AACCTTGG"
+t = "ACACTGTGA"
 
 print(longest_common_subsequence(s, t))
 

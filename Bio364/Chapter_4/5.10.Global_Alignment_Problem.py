@@ -90,8 +90,9 @@ def OutputLCS(backtrack, v, w, i, j) -> tuple[str, str]:
         return out[0] + v[i-1], out[1] + w[j-1]
 
 match_reward = 1 #match
-mismatch_penalty = 10 #mew
-indel_penalty = 1 #sigma
-s = "TTTTCCTT"
-t = "CC"
+mismatch_penalty = 1 #mew
+indel_penalty = 2 #sigma
+s = "GAGA"
+t = "GAG"
+
 print(global_alignment(match_reward, mismatch_penalty, indel_penalty, s, t))
