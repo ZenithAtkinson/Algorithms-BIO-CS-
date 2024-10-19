@@ -28,11 +28,14 @@ class linear_with_dictionary:
         return smallest_node, smallest_key
     
     def decrease_key(vals, node, NEW_key):
-        #Complexity: O(1)
-        if NEW_key < vals.elements[node]:
-            vals.elements[node] = NEW_key
-        else:
-            print("Not smaller key (in decrease_key)")
+        if node not in vals.elements:
+            #Not in queue, skip
+            return
+        if NEW_key >= vals.elements[node]:
+            #print("not smaller")
+            return
+
+        vals.elements[node] = NEW_key
 
 
 class log_with_binary_heap:
@@ -59,15 +62,19 @@ class log_with_binary_heap:
             vals.heapifyDOWN(0)
         
         return smallest_node, smallest_key
-    
-    def decrease_key(vals, node, NEW_key):
-        index = vals.pos_map.get(node) #Grabbing EXACT node
 
+    def decrease_key(vals, node, NEW_key):
+        index = vals.pos_map.get(node)#Grabbing EXACT node
+        if index is None:
+            return
         current = vals.heap[index][1]
-        vals.heap[index] = (node, NEW_key) #Do I need to check if the new key is actually smaller?
+        if NEW_key >= current:
+            return #do nothing of not smaller
         #print(vals.heap[node])
-    
+        vals.heap[index] = (node, NEW_key)
+        vals.pos_map[node] = index
         vals.heapifyUP(index)
+
 
     def heapifyUP(vals, index):
         #Move node UP to correct pos
@@ -102,5 +109,6 @@ class log_with_binary_heap:
         
         vals.pos_map[vals.heap[pos1][0]] = pos1
         vals.pos_map[vals.heap[pos2][0]] = pos2
+
 
 

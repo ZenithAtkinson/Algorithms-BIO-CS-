@@ -4,6 +4,8 @@ import random
 from math import inf
 from time import time
 
+#import plotting
+#from plotting import plot_points, circle_point, title, show_plot, plot_weights, draw_path
 from plotting import plot_points, draw_path, circle_point, title, show_plot, plot_weights
 from network_routing import find_shortest_path_with_array, find_shortest_path_with_heap
 
@@ -91,7 +93,7 @@ if __name__ == '__main__':
     # To debug or run in your IDE
     # you can uncomment the lines below and modify the arguments as needed
     # import sys
-    # sys.argv = ['main.py', '-n', '10', '--seed', '312', '--density', '0.3', '--noise', '0.05']
+    # sys.argv = ['main.py', '-n', '100000', '--seed', '312', '--density', '0.0001', '--noise', '0.05']
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', type=int, help='The number of points to generate', default=10)
@@ -102,15 +104,6 @@ if __name__ == '__main__':
     parser.add_argument('--target', type=int, default=None, help='Target node')
     parser.add_argument('--debug', action='store_true', help='Turn on debug plotting')
     args = parser.parse_args()
-    
-    """ n - the number of nodes in your network
-    seed - the random seed for generating your network
-    density - the fraction of possible edges in the network that are present
-    noise - how non-euclidean the edge weights are
-    If the noise is 0, the shortest path will be the direct edge from A to B (if the edge exists). If the noise is non-zero, it's possible the shortest path will include intermediate steps.
-    source - the node to start at (all nodes are identified by integers in 0..n-1)
-    target - the node to end at
-    debug - whether to turn on interactive plotting (you'll need pyqt installed for this to work) """
 
     if args.debug:
         # To debug your algorithm with incremental plotting:
@@ -128,5 +121,19 @@ if __name__ == '__main__':
     main(args.seed, args.n, args.density, args.noise, args.source, args.target)
 
     # You can use a loop like the following to generate data for your tables:
-    # for n in [100, 200, 400, 800, 1600, 3200, 6400]:
-    #     main(312, n, 1, 0.05, 2, 9)
+    #for n in [100, 200, 400, 800, 1600, 3200, 6400]:
+    #    main(312, n, 1, 0.05, 2, 9)
+
+    #main(312, 1000, .01, 0.05, 2, 9)
+    #main(312, 5000, .002, 0.05, 2, 9)
+    #main(312, 10000, .001, 0.05, 2, 9)
+    #main(312, 50000, .0002, 0.05, 2, 9)
+    #main(312, 100000, .0001, 0.05, 2, 9)
+
+    #main(312, 1000, 1, 0.05, 2, 9)
+    #main(312, 5000, 1, 0.05, 2, 9)
+    #main(312, 10000, 1, 0.05, 2, 9)
+    #main(312, 50000, 1, 0.05, 2, 9)
+    #main(312, 100000, 1, 0.05, 2, 9)
+
+    

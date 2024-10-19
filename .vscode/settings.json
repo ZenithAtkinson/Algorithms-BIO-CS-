@@ -3,8 +3,15 @@
         "kmers"
     ],
     "python.testing.pytestArgs": [
-        "."
+        "CS312"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./CS312",
+        "-p",
+        "test_*.py"
+    ]
 }

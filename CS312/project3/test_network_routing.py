@@ -2,7 +2,6 @@ from byu_pytest_utils import max_score, with_import
 
 from main import generate_graph
 
-
 def tiny_test(finder):
     graph = {
         0: {1: 2, 2: 1, 3: 4},
