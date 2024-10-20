@@ -78,7 +78,7 @@ class log_with_binary_heap:
 
     def heapifyUP(vals, index):
         #Move node UP to correct pos
-        parnt_index = (index - 1) // 2
+        parnt_index = (index - 1) 
 
         while index > 0 and vals.heap[index][1] < vals.heap[parnt_index][1]:
             vals.swap(index, parnt_index)
