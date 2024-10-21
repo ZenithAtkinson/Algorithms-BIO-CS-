@@ -8,7 +8,8 @@ from PIL import Image
 # The wd needs to be in the Textbook_Stuff subfolder
 
 # Load the PDF
-pdf_path = "Chegg_ The Regional Toolkit(177-184).pdf"
+pdf_path = "Chegg_ The Regional Toolkit(206-215).pdf"
+#pdf_path = "/Users/mac/Desktop/Algorithms-BIO-CS-/Misc_School_Tools/Textbook_Stuff/Chegg_ The Regional Toolkit(206-215).pdf"
 doc = fitz.open(pdf_path)
 
 # Define the crop margins (adjust as necessary)
@@ -39,13 +40,14 @@ zoom = 1.5  # 1.5x zoom gives higher resolution images
 matrix = fitz.Matrix(zoom, zoom)
 
 # Define the output directory path
-output_dir = r"C:\Users\zenit\BYUSchoolCoding\Algorithms-BIO-CS-\Misc_School_Tools\Textbook_Stuff"
+#output_dir = r"C:\Users\zenit\BYUSchoolCoding\Algorithms-BIO-CS-\Misc_School_Tools\Textbook_Stuff"
+output_dir = r"/Users/mac/Desktop/Algorithms-BIO-CS-/Misc_School_Tools/Textbook_Stuff"
 
 # Ensure the output directory exists
 os.makedirs(output_dir, exist_ok=True)
 
 # Create a file to store the extracted text
-output_text_file = os.path.join(output_dir, "extracted_text177-184.txt")
+output_text_file = os.path.join(output_dir, "extracted_text206-215.txt")
 
 # Step 3: Extract text from each image after saving
 
