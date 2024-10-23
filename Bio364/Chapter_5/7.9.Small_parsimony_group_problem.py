@@ -53,7 +53,7 @@ with open('dataset.txt', 'r') as file:
         else:
             adj_list[int(result[0])].append(value)
 
-        print(adj_list)
+        #print(adj_list)
 
 #print(content)
 
