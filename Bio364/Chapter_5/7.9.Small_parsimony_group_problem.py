@@ -1,43 +1,145 @@
 import sys
 from typing import List, Dict, Tuple
 import numpy as np
+def hamming_distance(suffix: str, text: str) -> int:
+    # Returns number of mismatches between two strings
+    distance = 0
+    if len(suffix) > len(text):
+        length = len(text)
+        distance = len(suffix) - len(text)
+    elif len(suffix) < len(text):
+        length = len(suffix)
+        distance = len(text) - len(suffix)
+    else:
+        length = len(suffix)
+
+    for i in range(0, length):
+        if suffix[i] != text[i]:
+            distance += 1
+    return distance
 
 
-def SmallParsimony(n: int,  adjacency_list: dict) -> Tuple[int, dict]:
-    '''
-    Input: An integer n followed by an adjacency list for a rooted binary tree with n leaves labeled by DNA strings.
-    Output: The minimum parsimony score of this tree, followed by the adjacency list of a tree corresponding to 
-        labeling internal nodes by DNA strings in order to minimize the parsimony score of the tree.  You may break 
-        ties  however you like.
-    '''
-    #print(adjacency_list)
-    score = 0
+def small_parsimony(n: int, adjacency: dict[int, list]) -> dict:
     tags = {}
-    for node in adjacency_list:
-        #print(node) # prints 4, 5, 6
+    s = {}
+    nucs = ["A", "C", "G", "T"]
+    for node in adjacency:
         tags[node] = 0
-        if type(adjacency_list[node][1]) == str:
+        if type(adjacency[node][0]) == str:
             tags[node] = 1
-    
-    pass
+            for k in nucs:
+                if k == adjacency[node][0][n] and k == adjacency[node][1][n]:
+                    if node in s:
+                        s[node].append(0)
+                    else:
+                        s[node] = [0]
+                elif k == adjacency[node][0][n] or k == adjacency[node][1][n]:
+                    if node in s:
+                        s[node].append(1)
+                    else:
+                        s[node] = [1]
+                else:
+                    if node in s:
+                        s[node].append(2)
+                    else:
+                        s[node] = [2]
+    path = {}
+    for key in adjacency:
+        if tags[key] == 1:
+            continue
+        daughter = s[adjacency[key][0]]
+        son = s[adjacency[key][1]]
+        for i in range(len(nucs)):
+            min_val = -1
+            min_pos = []
+            for j in range(len(nucs)):
+                val = daughter[i] + son[j]
+                if i != j:
+                    val += 1
+                if min_val == -1 or val < min_val:
+                    min_val = val
+                    min_pos = [i, j]
+                val2 = daughter[j] + son[i]
+                if i != j:
+                    val2 += 1
+                if val2 < min_val:
+                    min_val = val2
+                    min_pos = [j, i]
+            if key not in path:
+                path[key] = [min_pos]
+            else:
+                path[key].append(min_pos)
+            if key not in s:
+                s[key] = [min_val]
+            else:
+                s[key].append(min_val)
+        tags[key] = 1
+    #print(path)
+    #print(s)
+    seq = {}
+    start = max(s.keys())
+    spot = s[start].index(min(s[start]))
+    seq[start] = nucs[spot]
+    seq.update(build_sequence(adjacency, path, nucs, start, spot))
+    return seq
 
 
-n = 4
+def build_sequence(adjacency: dict[int, list], path: dict[int, list], nucs: list, start: int, spot: int):
+    seq = {}
+    if type(adjacency[start][0]) == str:
+        return seq
+    daughter = build_sequence(adjacency, path, nucs, adjacency[start][0], path[start][spot][0])
+    son = build_sequence(adjacency, path, nucs, adjacency[start][1], path[start][spot][1])
+    seq.update(daughter)
+    seq.update(son)
+    seq[adjacency[start][0]] = nucs[path[start][spot][0]]
+    seq[adjacency[start][1]] = nucs[path[start][spot][1]]
+    return seq
 
-adjacency_list = {
-    4: ["CAAATCCC", "ATTGCGAC"],
-    5: ["CTGCGCTG", "ATGGACGA"],
-    6: [4, 5]
-}
 
-#print(type(adjacency_list))
-SmallParsimony(n, adjacency_list)
+def tree_parsimony(inputs: dict[int, list]):
+    sequences = {}
+    adjacency = {}
+    for i in range(max(inputs.keys())+1):
+        sequences[i] = ""
+    spot = 0
+    for key in inputs:
+        if type(inputs[key][0]) == str:
+            sequences[spot] = inputs[key][0]
+            adjacency[key] = [spot, spot+1]
+            spot += 1
+            sequences[spot] = inputs[key][1]
+            spot += 1
+        else:
+            adjacency[key] = inputs[key]
+    for j in range(len(sequences[0])):
+        next_nucs = small_parsimony(j, inputs)
+        for key in next_nucs:
+            sequences[key] += next_nucs[key]
+    #print(sequences)
+    #print(adjacency)
+    total_distance = 0
+    for key in adjacency:
+        for item in adjacency[key]:
+            first = sequences[key]
+            second = sequences[item]
+            distance = hamming_distance(first, second)
+            total_distance += distance
+            print(first + "->" + second + ":" + str(distance))
+            print(second + "->" + first + ":" + str(distance))
+    print(total_distance)
 
+
+# adjacency_list = {
+#     4: ["CAAATCCC", "ATTGCGAC"],
+#     5: ["CTGCGCTG", "ATGGACGA"],
+#     6: [4, 5]
+# }
+# tree_parsimony(adjacency_list)
+
+adj_list = {}
 with open('dataset.txt', 'r') as file:
-    adj_list = {}
-
     for line in file:
-        
         line = line.strip()
         #print(line.strip())
         result = line.split("->")
@@ -52,30 +154,4 @@ with open('dataset.txt', 'r') as file:
             adj_list[int(result[0])] = [value]
         else:
             adj_list[int(result[0])].append(value)
-
-        print(adj_list)
-
-#print(content)
-
-#def organize_data(text):
-#    for line in text:
-#    print(line)
-
-''' Pseudocode:
-SmallParsimony(T, Character)
-    for each node v in tree T
-        Tag(v) ← 0
-        if v is a leaf
-            Tag(v) ← 1
-            for each symbol k in the alphabet
-                if Character(v) = k
-                    sk(v) ← 0
-                else
-                    sk(v) ← ∞
-    while there exist ripe nodes in T
-        v ← a ripe node in T
-        Tag(v) ← 1
-        for each symbol k in the alphabet
-            sk(v) ← minimumall symbols i {si(Daughter(v))+αi,k} + minimumall symbols j {sj(Son(v))+αj,k}
-    return minimum over all symbols k {sk(v)}
-'''
+tree_parsimony(adj_list)
