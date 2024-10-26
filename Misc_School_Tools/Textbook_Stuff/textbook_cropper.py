@@ -8,7 +8,7 @@ from PIL import Image
 # The wd needs to be in the Textbook_Stuff subfolder
 
 # Load the PDF
-pdf_path = "Chegg_ The Regional Toolkit(226-229).pdf"
+pdf_path = "Chegg_ The Regional Toolkit(229-238).pdf"
 #pdf_path = "/Users/mac/Desktop/Algorithms-BIO-CS-/Misc_School_Tools/Textbook_Stuff/Chegg_ The Regional Toolkit(206-215).pdf"
 doc = fitz.open(pdf_path)
 
@@ -47,7 +47,7 @@ output_dir = r"C:\Users\zenit\BYUSchoolCoding\Algorithms-BIO-CS-\Misc_School_Too
 os.makedirs(output_dir, exist_ok=True)
 
 # Create a file to store the extracted text
-output_text_file = os.path.join(output_dir, "extracted_text226-229.txt")
+output_text_file = os.path.join(output_dir, "extracted_text229-238.txt")
 
 # Step 3: Extract text from each image after saving
 
