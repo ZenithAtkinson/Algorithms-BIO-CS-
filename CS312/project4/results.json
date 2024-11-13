@@ -1,0 +1,67 @@
+{
+    "tests": [
+        {
+            "score": 5,
+            "max_score": 5,
+            "name": "test_alignment.py::test_small_alignment",
+            "output": "\n",
+            "visibility": "visible"
+        },
+        {
+            "score": 2,
+            "max_score": 2,
+            "name": "test_alignment.py::test_tiny_dna_alignment",
+            "output": "\n",
+            "visibility": "visible"
+        },
+        {
+            "score": 3,
+            "max_score": 3,
+            "name": "test_alignment.py::test_tiny_dna_alignment_gaps",
+            "output": "\n",
+            "visibility": "visible"
+        },
+        {
+            "score": 8,
+            "max_score": 8,
+            "name": "test_alignment.py::test_small_dna_alignment_not_banded",
+            "output": "\n",
+            "visibility": "visible"
+        },
+        {
+            "score": 8,
+            "max_score": 8,
+            "name": "test_alignment.py::test_small_dna_alignment_banded",
+            "output": "\n",
+            "visibility": "visible"
+        },
+        {
+            "score": 9,
+            "max_score": 9,
+            "name": "test_alignment.py::test_medium_dna_alignment",
+            "output": "\n",
+            "visibility": "visible"
+        },
+        {
+            "score": 10,
+            "max_score": 10,
+            "name": "test_alignment.py::test_large_dna_alignment",
+            "output": "\n",
+            "visibility": "visible"
+        },
+        {
+            "score": 10,
+            "max_score": 10,
+            "name": "test_alignment.py::test_large_dna_alignment_banded",
+            "output": "\n",
+            "visibility": "visible"
+        },
+        {
+            "score": 10,
+            "max_score": 10,
+            "name": "test_alignment.py::test_massive_dna_alignment_banded",
+            "output": "\n",
+            "visibility": "visible"
+        }
+    ]
+}
