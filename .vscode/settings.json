@@ -5,13 +5,14 @@
     "python.testing.pytestArgs": [
         "CS312"
     ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": true,
+    "python.testing.pytestEnabled": false,
+    
     "python.testing.unittestArgs": [
         "-v",
         "-s",
         "./CS312",
         "-p",
-        "test_*.py"
+        "*test*.py"
     ]
 }
