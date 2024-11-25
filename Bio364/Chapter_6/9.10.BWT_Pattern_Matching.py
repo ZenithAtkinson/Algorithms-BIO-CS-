@@ -25,8 +25,11 @@ def bw_matching(bwt: str, patterns: List[str]) -> List[int]:
 
                 first_occurrence = -1
                 last_occurrence = -1
-                #print(symbol)
 
+
+                '''top ← FirstOccurrence(symbol) + Countsymbol(top, LastColumn)
+                bottom ← FirstOccurrence(symbol) + Countsymbol(bottom + 1, LastColumn) - 1'''
+                #-----This section we replace until....
                 for i in range(top, bottom + 1):
                     if last_column[i] == symbol:
                         if first_occurrence == -1:
@@ -36,8 +39,8 @@ def bw_matching(bwt: str, patterns: List[str]) -> List[int]:
                 if first_occurrence != -1:
                     top = LastToFirst[first_occurrence]
                     bottom = LastToFirst[last_occurrence]
-                    #print(top)
-                    #print(bottom)
+                #-----until here.
+
                 else:
                     found = False
                     break
@@ -51,27 +54,6 @@ def bw_matching(bwt: str, patterns: List[str]) -> List[int]:
         result.append(match_count)
 
     return result
-    pass
-
-def burrows_wheeler_transform(text: str) -> str:
-    """
-    Generate the Burrows-Wheeler Transform of the given text.
-    """
-
-    #Get |text| number of strings
-    #For each string, starting with OG text, move all characters one to the right
-    all_Vals = []
-
-    for i in range(len(text)):
-        text = text[-1] + text[:-1]
-        all_Vals.append(text)
-    print(all_Vals)
-    all_Vals = sorted(all_Vals)
-
-    new_string = ""
-    for string in all_Vals:
-        new_string += string[-1]
-    return new_string
 
 def generate_first_to_last(transform: str) -> List[int]: #Borrowed from inverse function
     n = len(transform)
@@ -114,65 +96,6 @@ def generate_first_to_last(transform: str) -> List[int]: #Borrowed from inverse 
     #--- End of inverse function
     return first_to_last
 
-def inverse_burrows_wheeler_transform(transform: str) -> str:
-    """
-    Generate the inverse of the Burrows-Wheeler Transform.
-    """
-
-    n = len(transform)
-    #transform = Last column
-    first_column = sorted(transform)
-
-    #occurancs of LAST col
-    last_Occurances = {}
-    last_occurrence_indices = []
-    for char in transform:
-        #print(char)
-        if char in last_Occurances:
-            last_Occurances[char] += 1
-        else:
-            last_Occurances[char] = 1
-        last_occurrence_indices.append(last_Occurances[char])
-
-    #occurances of FIRST val
-    first_Occurance = {}
-    first_occurrence_indices = []
-    for char in first_column:
-        #print(char)
-        if char in first_Occurance:
-            first_Occurance[char] += 1
-        else:
-            first_Occurance[char] = 1
-        first_occurrence_indices.append(first_Occurance[char])
-    
-    lastvsfirst = [0] * n
-    first_column_dict = {}
-    for index in range(n):
-        char = first_column[index]
-        OC = first_occurrence_indices[index]
-
-        first_column_dict[(char, OC)] = index
-
-    for i in range(n): #positions
-        char = transform[i]
-        OC = last_occurrence_indices[i]
-        lastvsfirst[i] = first_column_dict[(char, OC)]
-    #print(lastvsfirst)
-    index = transform.index('$')
-    #print(index)
-    original_chars = []
-
-    for i in range(n):
-        index = lastvsfirst[index]
-        #print(index)
-        #print(first_column[index])
-        original_chars.append(first_column[index]) 
-    #print(original_chars)
-    #reverse
-    original_text = ''.join(reversed(original_chars))
-    return original_text
-
-    pass
 
 input = "TCCTCTATGAGATCCTATTCTATGAAACCTTCA$GACCAAAATTCTCCGGC"
 patterns = ["CCT", "CAC", "GAG", "CAG", "ATC"]

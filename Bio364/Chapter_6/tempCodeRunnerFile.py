@@ -1,1 +1,2 @@
-  # Move to the next index using LF mapping
+
+    for symbol in symbols:
