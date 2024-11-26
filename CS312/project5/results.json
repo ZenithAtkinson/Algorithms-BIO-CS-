@@ -1,0 +1,11 @@
+{
+    "tests": [
+        {
+            "score": 0,
+            "max_score": 5,
+            "name": "test_tsp.py::test_dfs",
+            "output": "\n@max_score(5)\n    def test_dfs():\n        graph = [\n            [0, 9, inf, 8, inf],\n            [inf, 0, 4, inf, 2],\n            [inf, 3, 0, 4, inf],\n            [inf, 6, 7, 0, 12],\n            [1, inf, inf, 10, 0]\n        ]\n        timer = Timer(10)\n>       stats = dfs(graph, timer)\n\ntest_tsp.py:65: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\ntsp_solve.py:196: in dfs\n    cut_tree.cut(current_path + [next_city])  # Track pruning\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = <tsp_cuttree.CutTree object at 0x00000263A57D21A0>, path = [0, 1, 4, 3, 2, 0]\n\n    def cut(self, path: list[int]):\n    \n        # Find the terminal node\n        # It will be the last node in the path\n        #  or the first terminal node we find along the way\n        node = self.head\n        for i in path:\n            if node.is_terminal_node:\n                # This means we didn't reach the end of the path\n                #  -> so the path cuts nodes that have already been cut\n                # So we can just return\n                return\n    \n            if i not in node.children:\n                # This path has not been followed before,\n                # so we will build it as we go\n                node.children[i] = CutTree.Node(0)\n    \n            node = node.children[i]\n    \n        # We've reached the end of the line\n        # The node we have is the terminal (cut) node\n        node.is_terminal_node = True\n    \n        # How many leaves did we already know where cut?\n        already_cut = node.n_leaves_cut\n    \n        # How many leaves just got cut?\n>       node.n_leaves_cut = math.factorial(self.n - len(path))\nE       ValueError: factorial() not defined for negative values\n\ntsp_cuttree.py:44: ValueError",
+            "visibility": "visible"
+        }
+    ]
+}
