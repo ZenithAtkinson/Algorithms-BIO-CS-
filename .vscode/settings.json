@@ -1,7 +1,8 @@
 {
     "cSpell.words": [
         "countsymbol",
-        "kmers"
+        "kmers",
+        "viterbi"
     ],
     "python.testing.pytestArgs": [
         "CS312"
