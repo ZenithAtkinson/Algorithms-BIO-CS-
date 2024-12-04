@@ -101,6 +101,7 @@ def test_branch_and_bound():
     assert_valid_tours(edges, stats)
 
     assert stats[-1].score < greedy_stats[-1].score
+    print(f"Regular B&B found solution with score: {stats[-1].score}")
 
 
 @max_score(10)
@@ -120,12 +121,17 @@ def test_branch_and_bound_smart():
 
     timer = Timer(20)
     bnb_stats = branch_and_bound(edges, timer)
+    #assert not timer.time_out(), "Regular B&B timed out."
     assert_valid_tours(edges, bnb_stats)
+    print(f"Regular B&B found solution with score: {bnb_stats[-1].score} and tour length: {len(bnb_stats[-1].tour)}")
 
     timer = Timer(20)
     stats = branch_and_bound_smart(edges, timer)
+    #assert not timer.time_out(), "Smart B&B timed out."
     assert_valid_tours(edges, stats)
+    print(f"Smart B&B found solution with score: {stats[-1].score} and tour length: {len(stats[-1].tour)}")
 
+    #assert stats[-1].score < bnb_stats[-1].score, "Smart B&B did not find a better solution than regular B&B"
     assert stats[-1].score < bnb_stats[-1].score
 
 

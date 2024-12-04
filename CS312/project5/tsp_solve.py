@@ -2,6 +2,8 @@ import math
 import random
 import copy
 
+import numpy as np
+
 import heapq
 from typing import List
 
@@ -215,8 +217,10 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return stats
 
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+
     """
-    Implements a Branch and Bound TSP solver using a reduced cost matrix for lower bounds.
+    Implements a Branch and Bound TSP solver using a stack for Depth-First Search.
+    Includes the greedy solution as a valid solution in the stats.
 
     Args:
         edges (list[list[float]]): Matrix of edge weights between cities.
@@ -241,16 +245,20 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         initial_BSSF = math.inf
         BSSF_tour = []
     else:
-        initial_BSSF = initial_solutions[0].score
-        BSSF_tour = initial_solutions[0].tour
+        # Find the best greedy solution (minimum score)
+        initial_solutions_sorted = sorted(initial_solutions, key=lambda s: s.score)
+        initial_BSSF = initial_solutions_sorted[0].score
+        BSSF_tour = initial_solutions_sorted[0].tour
+        # Include the greedy solution in stats
+        stats.extend(initial_solutions_sorted)
 
     # Define the State class
     class State:
         def __init__(self, path, cost, reduced_matrix, lower_bound):
-            self.path = path
-            self.cost = cost
-            self.reduced_matrix = reduced_matrix
-            self.lower_bound = lower_bound
+            self.path = path  # Current path as a list of city indices
+            self.cost = cost  # Current accumulated cost
+            self.reduced_matrix = reduced_matrix  # Current reduced cost matrix
+            self.lower_bound = lower_bound  # Current lower bound
 
     # Function to reduce the matrix and calculate the reduction cost
     def reduce_matrix(matrix):
@@ -282,20 +290,27 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
 
         return reduced_matrix, reduction_cost
 
-    # Initial reduction
-    initial_matrix, initial_reduction_cost = reduce_matrix(edges)
-    initial_state = State(
-        path=[0],
-        cost=0,
-        reduced_matrix=initial_matrix,
-        lower_bound=initial_reduction_cost
-    )
+    # Initialize the stack with all possible starting states
+    stack = []
 
-    # Initialize the stack with the initial state
-    stack = [initial_state]
+    for start_city in range(n):
+        if timer.time_out():
+            break
+
+        # Create a copy of the edges matrix for reduction
+        matrix, reduction_cost = reduce_matrix(edges)
+        initial_state = State(
+            path=[start_city],
+            cost=0,
+            reduced_matrix=matrix,
+            lower_bound=reduction_cost
+        )
+        stack.append(initial_state)
+
+    max_queue_size = max(max_queue_size, len(stack))
 
     while stack and not timer.time_out():
-        current_state = stack.pop()
+        current_state = stack.pop()  # LIFO
         n_nodes_expanded += 1
         max_queue_size = max(max_queue_size, len(stack) + 1)
 
@@ -310,7 +325,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         if len(current_path) == n:
             last_city = current_path[-1]
             first_city = current_path[0]
-            edge_back = current_state.reduced_matrix[last_city][first_city]
+            edge_back = edges[last_city][first_city]
             if edge_back == math.inf:
                 n_nodes_pruned += 1
                 continue
@@ -367,17 +382,28 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
                 n_nodes_pruned += 1
                 continue
 
-            # Add the new state to the stack
+            # Create the child state
             child_state = State(
                 path=current_path + [next_city],
                 cost=cost,
                 reduced_matrix=child_matrix,
                 lower_bound=lower_bound
             )
+
+            # Add the new state to the stack
             stack.append(child_state)
 
-    # If no solution was found, return a no-solution result
-    if not stats:
+    # After collecting all valid solutions, sort them appropriately
+    if stats:
+        # Sort the stats by score in ascending order and reverse to have the best solution last
+        stats_sorted = sorted(stats, key=lambda s: s.score)
+        stats_sorted.reverse()
+        return stats_sorted
+    elif initial_solutions:
+        # If no better solutions were found, return the greedy solutions
+        return initial_solutions
+    else:
+        # Return a no-solution result
         return [SolutionStats(
             tour=[],
             score=math.inf,
@@ -389,31 +415,28 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
             fraction_leaves_covered=cut_tree.fraction_leaves_covered()
         )]
 
-    return stats
+import math
+import heapq
+from typing import List
 
-def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+def branch_and_bound_smart(edges: List[List[float]], timer) -> List['SolutionStats']:
     """
-    Implements a Best-First Search (Smart Branch and Bound) TSP solver using a reduced cost matrix
-    and a priority queue to prioritize deeper paths.
+    Implements a Smart Branch and Bound TSP solver using a priority queue and a custom priority function.
+    Includes the greedy solution as a valid solution in the stats.
 
     Args:
-        edges (list[list[float]]): Matrix of edge weights between cities.
-        timer (Timer): Timer object to manage timeouts.
+        edges (List[List[float]]): Matrix of edge weights between cities.
+        timer: Timer object to manage timeouts.
 
     Returns:
-        list[SolutionStats]: A list of solutions with stats for each solution found.
+        List[SolutionStats]: A list of solutions with stats for each solution found.
     """
-    import math
-    import heapq
-    import copy
-
     n = len(edges)
     stats = []
     n_nodes_expanded = 0
     n_nodes_pruned = 0
     max_queue_size = 0
     cut_tree = CutTree(n)
-    state_counter = 0  # To ensure unique entries in the priority queue
 
     # Initialize BSSF using the greedy tour
     initial_solutions = greedy_tour(edges, timer)
@@ -425,15 +448,32 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
         initial_solutions_sorted = sorted(initial_solutions, key=lambda s: s.score)
         initial_BSSF = initial_solutions_sorted[0].score
         BSSF_tour = initial_solutions_sorted[0].tour
-        stats.extend(initial_solutions_sorted)  # Include all greedy solutions in stats
+        # Include the greedy solution in stats
+        stats.extend(initial_solutions_sorted)
 
     # Define the State class
     class State:
-        def __init__(self, path, cost, reduced_matrix, lower_bound):
-            self.path = path
-            self.cost = cost
-            self.reduced_matrix = reduced_matrix
-            self.lower_bound = lower_bound
+        def __init__(self, path, cost, reduced_matrix, lower_bound, depth):
+            self.path = path  # Current path as a list of city indices
+            self.cost = cost  # Current accumulated cost
+            self.reduced_matrix = reduced_matrix  # Current reduced cost matrix
+            self.lower_bound = lower_bound  # Current lower bound
+            self.depth = depth  # Depth in the search tree
+            self.priority = None  # Priority in the priority queue
+
+        # Priority attributes
+        def compute_priority_phase1(self, alpha):
+            # In Phase 1, prioritize deeper states and lower bounds
+            # Using a tuple: (-depth, lower_bound)
+            return (-self.depth, self.lower_bound)
+
+        def compute_priority_phase2(self):
+            # In Phase 2, prioritize states with lower bounds
+            return (self.lower_bound,)
+
+        # For heapq to compare states based on priority
+        def __lt__(self, other):
+            return self.priority < other.priority
 
     # Function to reduce the matrix and calculate the reduction cost
     def reduce_matrix(matrix):
@@ -467,23 +507,31 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
 
     # Initialize the priority queue with all possible starting states
     priority_queue = []
+    phase = 1  # Start in Phase 1
+    alpha = 1  # Initial weight for Phase 1
+
     for start_city in range(n):
         if timer.time_out():
             break
 
-        # Initial state for each starting city
-        initial_matrix, initial_reduction_cost = reduce_matrix(edges)
+        # Create a copy of the edges matrix for reduction
+        matrix, reduction_cost = reduce_matrix(edges)
         initial_state = State(
             path=[start_city],
             cost=0,
-            reduced_matrix=initial_matrix,
-            lower_bound=initial_reduction_cost
+            reduced_matrix=matrix,
+            lower_bound=reduction_cost,
+            depth=1  # Starting depth is 1
         )
-        heapq.heappush(priority_queue, ((-len(initial_state.path), initial_state.lower_bound), state_counter, initial_state))
-        state_counter += 1
+        # Compute priority for Phase 1
+        initial_state.priority = initial_state.compute_priority_phase1(alpha)
+        # Push onto priority queue
+        heapq.heappush(priority_queue, initial_state)
+
+    max_queue_size = max(max_queue_size, len(priority_queue))
 
     while priority_queue and not timer.time_out():
-        (path_neg_len, current_lower_bound), _, current_state = heapq.heappop(priority_queue)
+        current_state = heapq.heappop(priority_queue)
         n_nodes_expanded += 1
         max_queue_size = max(max_queue_size, len(priority_queue) + 1)
 
@@ -498,7 +546,7 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
         if len(current_path) == n:
             last_city = current_path[-1]
             first_city = current_path[0]
-            edge_back = edges[last_city][first_city]  # Use original edges matrix here
+            edge_back = edges[last_city][first_city]
             if edge_back == math.inf:
                 n_nodes_pruned += 1
                 continue
@@ -506,9 +554,11 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
             total_cost = current_state.cost + edge_back
             if total_cost < initial_BSSF:
                 initial_BSSF = total_cost
-                BSSF_tour = current_path + [first_city]
+                BSSF_tour = current_path.copy()  # Ensure tour length = n
+
+                # Record the solution
                 stats.append(SolutionStats(
-                    tour=BSSF_tour,
+                    tour=current_path.copy(),  # Ensure tour length = n
                     score=total_cost,
                     time=timer.time(),
                     max_queue_size=max_queue_size,
@@ -517,6 +567,17 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
                     n_leaves_covered=cut_tree.n_leaves_cut(),
                     fraction_leaves_covered=cut_tree.fraction_leaves_covered()
                 ))
+
+                # Switch to Phase 2 after finding the first complete solution
+                if phase == 1:
+                    phase = 2
+                    # Recompute priorities for all existing states in the queue
+                    new_priority_queue = []
+                    while priority_queue:
+                        state = heapq.heappop(priority_queue)
+                        state.priority = state.compute_priority_phase2()
+                        heapq.heappush(new_priority_queue, state)
+                    priority_queue = new_priority_queue
             else:
                 n_nodes_pruned += 1
             continue
@@ -555,20 +616,31 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
                 n_nodes_pruned += 1
                 continue
 
-            # Add the new state to the priority queue
+            # Create the child state
             child_state = State(
                 path=current_path + [next_city],
                 cost=cost,
                 reduced_matrix=child_matrix,
-                lower_bound=lower_bound
+                lower_bound=lower_bound,
+                depth=current_state.depth + 1
             )
-            heapq.heappush(priority_queue, ((-len(child_state.path), child_state.lower_bound), state_counter, child_state))
-            state_counter += 1
 
-    # After the search, ensure that at least the initial BSSF is included
+            # Compute priority based on current phase
+            if phase == 1:
+                # In Phase 1, prioritize deeper states and lower bounds
+                child_state.priority = child_state.compute_priority_phase1(alpha)
+            else:
+                # In Phase 2, prioritize lower bounds
+                child_state.priority = child_state.compute_priority_phase2()
+
+            # Add the new state to the priority queue
+            heapq.heappush(priority_queue, child_state)
+
+    # After collecting all valid solutions, sort them appropriately
     if stats:
-        # Sort the stats by score to have the best solutions first
+        # Sort the stats by score in ascending order and reverse to have the best solution last
         stats_sorted = sorted(stats, key=lambda s: s.score)
+        stats_sorted.reverse()
         return stats_sorted
     elif initial_solutions:
         # If no better solutions were found, return the greedy solutions
