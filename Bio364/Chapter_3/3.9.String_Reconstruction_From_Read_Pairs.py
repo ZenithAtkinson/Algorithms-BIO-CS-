@@ -3,275 +3,188 @@ from typing import List, Dict, Iterable, Tuple
 
 # Please do not remove package declarations because these are used by the autograder.
 
-#Split the paired reads
-#Make debruijn graph
-#find eularian paths
-#merge prefix + suffix
+# Split the paired reads
+# Make de Bruijn graph
+# Find Eulerian paths
+# Merge prefix + suffix
 
 # Insert your StringReconstructionReadPairs function here, along with any subroutines you need
-def StringReconstructionReadPairs(PairedReads: List[Tuple[str, str]],
-                                  k: int, d: int) -> str:
-    overlap = k + d #6
+def StringReconstructionReadPairs(PairedReads: List[Tuple[str, str]], k: int, d: int) -> str:
+    """
+    Reconstructs a genome string from its paired (k, d)-mer composition.
 
-    #All prefix list
-    paired_kmers = PairedReads
+    Parameters:
+        PairedReads (List[Tuple[str, str]]): List of paired k-mers as tuples (Read1, Read2).
+        k (int): Length of each k-mer.
+        d (int): Gap distance between paired k-mers.
 
-    pre_str, suf_str = string_reconstruction_paired(paired_kmers, k)
+    Returns:
+        str: The reconstructed genome string, or a message indicating failure.
+    """
+    return get_gapped(PairedReads, k, d)
 
-    overlap_length = len(pre_str) - overlap
-    #overlap_length = len(read1_patterns)-overlap #-2? Can it even be neg?
-
-    #print(overlap_length)
-    #Given the prefix+suffix strings, we need to merge together
-    prefix_overlap = pre_str[overlap:]
-    suffix_overlap = suf_str[:overlap_length]
-    #print(pre_str)
-    #print(prefix_overlap)
-    #print(suffix_overlap)
-    if prefix_overlap != suffix_overlap:
-        return "WRONG" + prefix_overlap
-
-    fin_genome = pre_str + suf_str[overlap_length:]
-    return fin_genome
-
-    pass
-
-# ALL MY OLD FUNCTIONS THAT ARE NEEDED:
-def string_reconstruction(patterns: List[str], k: int) -> str:
-    """Reconstructs a string from its k-mer composition."""
-    dB = {}
-    dB = de_bruijn_string(patterns, k)
-    path = eulerian_path(dB)
+def string_reconstruction(patterns: List[str], k: int) -> str:  #Needs a total rework (done?)
+    de_brewin = de_bruijn_string(patterns, k)
+    path = eulerian_path(de_brewin)
 
     final = ""
     first = True
-    #print(path)
     for i in path:
         if first:
-            final+=i
+            final += i
             first = False
         else:
-            final+= i[-1]
-            #print(i[-1])
-    
-    #final = ""
-    #for i in path:
-    #    final+=(i[0])
-    #
-    #final_char = path[-1]
-    #final+= (final_char[-1])
-
+            final += i[-1]
+            #print(final)
     return final
 
-def string_reconstruction_paired(patterns: List[Tuple[str, str]], k: int):
+def de_bruijn_string(kmers: List[str], k: int) -> Dict[str, List[str]]:
+    """
+    Constructs the de Bruijn graph from a list of k-mers.
 
-    dB = paired_de_bruijn(patterns, k)
-    path = eulerian_path(dB)
-    #print(path)
+    Parameters:
+        kmers (List[str]): List of k-mers.
+        k (int): Length of each k-mer.
 
-    prefix_string = path[0][0]
-    suffix_string = path[0][1]
-    #suffix_string = path[1][0]
-    #following path
-    for node in path[1:]:
-        #print(node)
-        prefix_string += node[0][0]
-        suffix_string += node[1][-1]
-
-    return prefix_string, suffix_string
-
-
-# Insert your de_bruijn_string function here, along with any subroutines you need
-def de_bruijn_string(kmers: List[str], k: int):
-    """Forms the de Bruijn graph of a string."""
-    #find all the kmers,
+    Returns:
+        Dict[str, List[str]]: The de Bruijn graph represented as an adjacency list.
+    """
+    #Given a (k, d)-mer (a1 ... ak | b1 ... bk), we define its prefix as the (k − 1, d + 1)-mer (a1 ... ak-1 | b1 ... bk-1), 
+    #and its suffix as the (k − 1, d + 1)-mer (a2 ... ak | b2 ... bk). For example, Prefix((GAC|TCA)) = (GA|TC) and Suffix((GAC|TCA)) = 
+    #(AC|CA).
+    #No more graph
     kmer_dict = {}
-
-    #print(get_prefixes(kmers))
-    #print(get_suffixes(kmers))
     k_prefixes = get_prefixes(kmers, k)
     k_suffixes = get_suffixes(kmers, k)
-    # #and their prefixes/suffixes.
-    #for each prefix, append it to a dictionary and add the suffixes as the key value
 
     for i in range(len(kmers)):
         if k_prefixes[i] not in kmer_dict:
-            kmer_dict[ k_prefixes[i]] = []
+            kmer_dict[k_prefixes[i]] = []
         kmer_dict[k_prefixes[i]].append(k_suffixes[i])
-    #print(kmer_dict)
 
-    #for key, value in kmer_dict.items():
-    #    print(f"{key}: {value}")
-
-    #return dictionary list
     return kmer_dict
 
-def paired_de_bruijn(kmers: List[Tuple[str, str]], k: int):
-    #Given a (k, d)-mer (a1 ... ak | b1 ... bk), we define its prefix as the (k − 1, d + 1)-mer (a1 ... ak -1 | b1 ... bk - 1), and its suffix as the #(k - 1,d + 1)-mer (a2 ... ak | b2 ... bk). For example, Prefix((GAC|TCA)) = (GA|TC) and Suffix((GAC|TCA)) = (AC|CA).
-    graph = {}
-
-    for read1, read2 in kmers:
-        prefix = (read1[:-1], read2[:-1]) 
-        suffix = (read1[1:], read2[1:])
-        if prefix not in graph:
-            graph[prefix] = []
-            #represents a path formed by |Text| - ( k + d + k) + 1
-            #KEY: (k-1, d+1)-mer
-            #VAL: (k-1, d+1)-mers.
-        graph[prefix].append(suffix)
-
-    return graph
-
-def kmer_composition(text: str, k: int) -> Iterable[str]:
-    """Forms the k-mer composition of a string."""
-    #Given the text... find all kmers of given length k and return them as a list.
+def kmer_composition(text: str, k: int) -> Iterable[str]:  # 3.9.12, PairedCompositionGraph
     kmers = []
-    kmer = ""
-    for c in range(len(text)-(k-1)):
-        kmer = text[c:c+k]
+    for guy in range(len(text) - k + 1):
+        kmer = text[guy:guy + k]
         kmers.append(kmer)
     return kmers
 
-def get_prefixes(kmer_list: list[str], k: int):
+def get_prefixes(kmer_list: List[str], k: int) -> List[str]:  #Helpy
     prefixes = []
-    for i in range(len(kmer_list)):
-        kmer = kmer_list[i]
-        prefixes.append(kmer[0:(k-1)]) #[0:2]
-    #return a list of prefixes
+    for kmer in kmer_list:
+        prefixes.append(kmer[:k - 1])
+    #print(prefixes)
     return prefixes
 
-def get_suffixes(kmer_list: list[str], k: int):
+def get_suffixes(kmer_list: List[str], k: int) -> List[str]:  #Helpy
     suffixes = []
-    for i in range(len(kmer_list)): 
-        kmer = kmer_list[i]
-        suffixes.append(kmer[1:k]) #[1:3]
-    #return a list of prefixes
+    for kmer in kmer_list:
+        suffixes.append(kmer[1:k])
+    #print(suffixes)
     return suffixes
 
-# Please do not remove package declarations because these are used by the autograder.
-
-# Insert your eulerian_cycle function here, along with any subroutines you need
-# g[u] is the list of neighbors of the vertex u
 def eulerian_path(g: Dict[str, List[str]]) -> Iterable[str]:
-    """Constructs an Eulerian pathe in a graph."""
-    new_path = []
-    start = get_start(g)
-    end = get_end(g)
-    if start != "NULL":
-        if end in g.keys():
-            g[end].append(start)
+    """
+    Finds an Eulerian path in the given de Bruijn graph.
+
+    Parameters:
+        g (Dict[str, List[str]]): The de Bruijn graph represented as an adjacency list.
+
+    Returns:
+        Iterable[str]: The sequence of nodes in the Eulerian path.
+    """
+    #start_node = get_start_node(graph)
+    #stack = [start_node]
+    #path = []
+    IN_degree = {}
+    OUT_degree = {}
+    for node in g:
+        OUT_degree[node] = len(g[node])
+        for neighbor in g[node]:
+            IN_degree[neighbor] = IN_degree.get(neighbor, 0) + 1
+
+    start = None
+    end = None
+    for node in set(list(IN_degree.keys()) + list(OUT_degree.keys())):
+        #print(node)
+        out_deg = OUT_degree.get(node, 0)
+        in_deg = IN_degree.get(node, 0)
+        #print(out_deg, ", ", in_deg)
+
+        if out_deg - in_deg == 1:
+            start = node
+        elif in_deg - out_deg == 1:
+            end = node
+
+    if start is None:
+        start = next(iter(g))  #Just the first one
+
+    stacker = [start]
+    path = []
+    current_graph = {}
+    for node, neighbors in g.items():
+        #print("Copying: ", node, neighbors)
+        current_graph[node] = neighbors.copy()
+    #print(stacker)
+    while stacker:
+        current = stacker[-1]
+        if current in current_graph and current_graph[current]:
+            next_node = current_graph[current].pop(0)
+            stacker.append(next_node)
         else:
-            g[end] = [start]
+            path.append(stacker.pop())
+    path = path[::-1]  #Reverse it
+    return path
 
+def get_gapped(gapped_patterns: List[Tuple[str, str]], k: int, d: int) -> str:
+    """
+    Reconstructs a string from a sequence of paired (k, d)-mers.
 
-    key = list(g.keys())[0]
-    #print(key)
-    new_path.append(key)
-    done = cycle_checker(g, new_path, key)
-    while not done:
-        i = 0
-        #print("test")
-        while i < (len(new_path)):
-            if len(g[new_path[i]]) > 0:
-                key = new_path[i]
-                #print("key : ",key)
-                break
-            i += 1
-        new_path2 = new_path[i:]
-        new_path2.extend(new_path[1:i+1])
-        new_path = new_path2
-        done = cycle_checker(g, new_path, key)
-    
-    #print(g)
-        
-    if start != "NULL" or end != "NULL":
-        for p in range(len(new_path)-1):
-            if new_path[p] == end and new_path[p+1] == start:
-                break        
-        new_path2 = new_path[p:]
-        new_path2.extend(new_path[1:p+1])
-        new_path = new_path2
-        new_path = new_path[1:]
+    Parameters:
+        gapped_patterns (List[Tuple[str, str]]): List of paired k-mers as tuples (Read1, Read2).
+        k (int): Length of each k-mer.
+        d (int): Gap distance between paired k-mers.
 
-    return new_path
+    Returns:
+        str: The reconstructed genome string, or a message indicating failure.
+    """
+    first_patterns = []
+    second_patterns = []
+    for read in gapped_patterns:
+        if len(read) != 2:
+            return "ERROR ERROR"
+        first_patterns.append(read[0])
+        second_patterns.append(read[1])
 
-def cycle_checker(g: Dict[str, List[str]], new_path: list, key: str):
-    #Each time you move along the edge, take that given value out of the dictionary list.
-        #Add it to a straight list which is the path.
-    running = True
-    while running:
-        #Cut out each key, when it is empty
-        #edge = key[0]
-        edge = g[key].pop(0)
-        key = edge
-        new_path.append(edge)
-        #print(g)
-        #print(new_path)
+    prefix_string = string_reconstruction(first_patterns, k)
+    suffix_string = string_reconstruction(second_patterns, k)
 
-        if (len(g[edge])==0):
-            running == False
-            break
-    for i in g:
-        if len(g[i]) >= 1:
-            #print("its not finished")
-            return False
-        
-    return True
+    # overlap by (k + d) characters
+    #
+    # The last (k + d) characters of prefix_string should equal the 1st (k + d) characters of suffix_string
 
-def get_start(g: Dict[str, List[str]]):
-    for i in g:
-        count = 0
-        for j in g:
-            for k in g[j]:
-                if k == i:
-                    count+=1
-        if (count < len(g[i])):
-            return i
-    return "NULL"
+    overlap_length = k + d
+    if len(prefix_string) < overlap_length or len(suffix_string) < overlap_length:
+        return "Uh oh. this shouldnt be here"
 
-def get_end(g: Dict[str, List[str]]):
-    for val in g.values():
-        for item in val:
-            if item not in g.keys():
-                return item
-    for i in g:
-        count = 0
-        for j in g:
-            for k in g[j]:
-                if k == i:
-                    count+=1
-        if (count > len(g[i])):
-            return i
-    return "NULL"
+    prefix_overlap = prefix_string[-overlap_length:]
+    suffix_overlap = suffix_string[:overlap_length]
 
+    reconstructed_text = prefix_string + suffix_string[overlap_length:]
+    return reconstructed_text
 
-def compare_outputs(str1, str2):
-    min_len = min(len(str1), len(str2))
-    
-    for i in range(min_len):
-        if str1[i] != str2[i]:
-            print(f"Mismatch at {i}: '{str1[i]}' != '{str2[i]}'")
+# Issue input:
+# 2 1
+# GG|GA GT|AT TG|TA GA|AC AT|CT
+# input_data = sample_input.strip().split()
+k = 2  # k-mer length
+d = 1  # gap distance
+# k = 50
+# d = 200
+# paired_reads = "GG|GA GT|AT TG|TA GA|AC AT|CT".split()
+paired_reads = [tuple(read.split('|')) for read in "GG|GA GT|AT TG|TA GA|AC AT|CT".split()]
 
-def process_file(file_path):
-    with open(file_path, 'r') as file:
-        lines = file.readlines()[1:]
-    #Split by '|'
-    result = [tuple(line.strip().split('|')) for line in lines]
-    
-    return result
-
-file_path = 'test_input_1.txt'
-result = process_file(file_path)
-
-#k = 4 #kmer length
-#d = 2 #insert length
-k = 50
-d = 200
-
-paired_reads = [('ACAC', 'CTCT'), ('ACAT', 'CTCA'), ('CACA', 'TCTC'), ('GACA', 'TCTC')]
-
-#compare_outputs("ATCAATCTCGGGTTATCCTGGCAACGTTTTTGAGCATACCAAGTGGTCAGCGTTATTTAACGGCGTACCTATGTCGAGAAAATTTAACCACTTATATATCTTCCTGCATACACGCCAGCGTGCATTCCTAGCTTTGGTTTCTACGTGTAAAGGTTGTGCTCACTGTGAGTGTTGTTCCATATGGGCCGTTGGCACGCTAGGATGCTAACTCGCTCAATTCTCATCCTTTGCTTCGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATTCCCGCCTATGACGGGCTTAGCACACGCCTGGTATATCATAAAAAGACCGCAATCATTAGATCCCCGGACGAGTCGGGGGTGGTCTTCGGACAAGGTCAGAGTTTTCGCTCATTGGTCTGAAGTGTCCCTTTAGCCTAATCCAGTGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGTTTAGAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAAGTTGGTGTATACGTGGTGTATCGTCCCAGGTCCGTACGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATTGTCTAGATCAATCCCGACCCCAAAAGGCAATCCCCTCCGCTAACACTAGAAACAATGGTCGGCCTTGTCGGGCGCAATACATATCCCTAAGGTATTGACCAGTGCGCGGCGTTCTGCCGTTCCTATGGTAGATTAACGGTGTGCCCCGCATTGCCAAAGGCCAGAAGTTAGACCAAATTTGCGAGGCGCGTGCAGGGTCTAATGTGCGCTCAAATGATCAGATGTACTCCCCAAACGCACCCTTCGTGGGATGACCCCCGAGCTGCGCAGAATCAACGAAACTCCTGACTGAAAGGCTAAGTTCGGACGATGTCCCTTTCTAACATATACGGGCCTAGGCCCGCTCGTGAGTGGGTGACGCTTGACTTTAATAGTGTACCCGTAACGGGTTGGGCCTATACCCCGCGACTTGCAGTATCACACATTATCTGTGGAAGGGTTAGGGGCATCACTTGCGCGATAAGACGCTCTCCTTGGAGCAAGCCAAGCGGGGTACTATTTAACGATGATGCGATCTCCATCGAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAACCAACTGCACGGCCTAGTCCTAGGCTTAGACAGGGTCATTACAGAAGCGCCTAGGTGCACGTTGCCCGTTGTGAACCTGATTCCGCAGCGTCAGTTCAGCACATTAGAGCAATACAAAAAACTTTCAGCCAGCGTTAGTGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAACTTAAGGGCCTTGAAGAATGCCTCATCGTTATTGGCAGCCAAGGTCACGAGATTTGCGTGCAGGGCAATCCATGCGGGACATGTATGATCGCATGCTCAGGTAAAAAAATTGTGAGTCATACCTGGTTGAATTAGGATAAGGCAACCGAGACGATTGATGTTTATGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAACCACTGGTAAACGAGGCCACTAATAATTGTAACAATTCTGGTAGTAATAAGTTTCGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAACGCTCTTCCCCCCAGTTACAGGAAGTCATCCCGACCCCTTCAGACGGAACGATCTGCCCCATTGGAAGTAGCTCTACACAGGCGTGACCGGAGTGCTAATACACGCGGGATCATAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGTCCCCGTTATAGCAGAGAATTGGACAGAATTAAGAACTTTCACTTTCCATGTTCGTAGAGGCAACAAAATGGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGGTGCGACGCGACCCTAGCGCGGTTATGGTATGGCTGGCGACAAAGTGCGTCAGTTGCCGGGGCAATAGGTCATCTGTGACTAGTTGGGCAGCCCGCGTTGATTAAGCCAGGCCGTATTCTCCATCAAGTGAAGCAGGTCCCCATCCATCAAGGCTAGGCGATTGGCTTCCTCTGCTCGCTGGGTACTGTTATGGAGGTAGTTAATGTGTTATTCTACCGAGGTGAGCGTGTGAACTGCATGAAAATCTGTACGACGGCATCCTAAGGCGGGAGGGACTTCTCTTATATCTCAAGGTTTCTACGGTTGTTATGTACGGCCCGTCGAACGCGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAACAACGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATAAAAGCATGGGTTTAAAAGTTGCGTACTGACCCTTCGGTATGCTGGTTCAAGAAAGATAGGATAAGCTCGTAATTTAAAGTGGCGCTCTAAGGCGTGCCAGCAAAGGGAAATCGGCTAATGTAGCGAACGGTACGAGCGGACCCTCCTGTACTCCAATCCCCCCGGAGCGACGTGCTACCCATGTATGGAACACCAGAGCGCCGGAATCCAGCGATCCTAGTTCTTCCAGTGTCAAACTCCAAGCGGCACTCTCCGTGCCCCACAGGCCGTGCATCAAGTCGGCCAGATTAAACCTGCTAGCATGGCGGGTCAGTCCGATTCATGGCGACCCTTGACATGCGACGTAAACTGATAAATTTACACGTCTCCCGACTTCGTTGTATGTATGCGCACGATTCCCAGGTCAGACGTCCGCGCGAAGCGCCTACCGGTCTGTAAAGACACTTAAGCGGGAATATGGGATATGAATCAAGGCTAAGACTAAATCCGTCAACGTCAGGCAATCCCGTACGCAGGGCTCAAATGAACGGTGATGAACGAATAAGATCTCGCACCGAACGATCAGAGCAACTGTAGCTACTGGCCCCAAATTACGGGGGGGGCACGGCCATACGTGAGCTCTCGGTGGGATCGCACTCTCTCTATTCAGCTCTCTTGCGAGTACAGGATCTTATCGTGTCAAATACGGCCTCACCACGTGAAATGGCACAATGGACTTTGCGTCGGATGTCTCTATTTCAATCCCCTGATAGTGGGACACAATGGAGATTTTCTTAAGCGCTTATCAGAGTACACTCGAAGAAGGTTGCTGCTGGAAGATCTCCCTGGACCATACTAAGCTAGCGCCAACATCGCCAAGTCAGACCCGGGGGCTGTCCTCACGATAGAATGCGTCACGTGACGAGCGCAACTACGGTTAGTAATAGTTTTAGCAGAGTAGGCGGCAGTTTTCCCGGAATTTAGACAAAGCCTAAGGGCAAACGCGAGCGTCGGTCCACAAGACTGATGATTGACGGGGCTAAAAATTCACCAGGGAAAGGCCGGGCAGCTGTTGGTACTACGATTCATGCTACGCTACCATAGGCAGATACAATCTATTCGTTAGCTTTACCCTGGGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGCATCCAGGGGTTCAGTCGTGTCTTACTCCGATCAGTCTCCTATGTCATTTATCGGTTGCTACGAGGTGATTCTGCAGAATAGCTAGGCCGAATGAATCGAGAGTTGTCTCGTGCAGACCAACGACACGTTTACAACACCATTCTCACTCTGTTCTTGCCGATTCAGATTCGGGTAGCTGAAGCACGGCGCGACTCACTTATTATGGTTTGAACCAATAAGGGTACGAGGAGCTGCAGAATAATAAGGTAGTCGGACAGACCTTTACAAACTGACACTAGAAAGAGTTACAAGAACGATGAGGATCGAGGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGTCAACTGTGAGAACGACATGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATCGTACGGCGAATAGTGGTTTCGCTGGCCCGGAAACGCTCCCAGTGCGAGCAGTCTCGGGAGCAAGATCCTCTACTACAGCCCTGGGTCGGGGTCCGTTATTCTTGGGACCCTTCTGACTGACTACGTTCGAGACCCCTTGTGCGGAAGTGAGCGCAGTGGTTTCTGCGTGCCGCCGAGGATTCGCTCTAAAGACCAACATTGCATGAAGCTATGTAGCCTCGGCCTCACTCCCCGCTTGTTGCTAATGGTCCGAACTGGCGCGCGTTTAGCACACCCACTGCCTGACTTGTATGATACGTTAAAAAGAAGGCTTGGAGAGTTACGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATTAGCCGTGTCTGGAGGTTGTGAAGCGTGGAGCATTTCGCTGTATCGAGTGTTGAATTTTCAACCCAACGTTTGCCGCACGTCTCCCAAGATATGGGATACTCAATGTTCGACGGGAACTCGGGGTATCGTCCAGCTCGCTCTTCCACCGATTAGGAAATCTCTGAAGCGCGCTGCCGTATTACCCGCTAGCTTATTCTGCGTGGGGCGTCGCAATTTAACGCTGCTAAGGCAGTCACAAGACACGATGCAAAAGCTTGAGAACAATGCTTGCGAGTTCGCGGTAAGTCGGTTGCTCCATGACATCTGGACCGCGGGTGTCCGTATTGTCGATTATAAACGCATCTTCGCCACCGCAGAACGTCATGGCGGTAGAGGTCTCGAGAATAGCGCGTCTGGTGAAAAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAACTGAGACCCGTTTTGGGGCCCAAGTGTCAACCGCGACAAGTGAGCTCCAGTACGAAGCGTAATGCCCTCTCCTCACCTTTTGTGAGCGTGAGTGTAGGAAGAACAAAGAGCTCATTGTACAAACTGTTAGACAGCTCACGGCAGGCGAGGGGTCCGTACAGGGATCCGATTCTGGAGCAAAAACCTTAGTTAGCCGCGTGACGGTCCGATCCCTCGTGCTTGTCCGAATGGCCTTCATGAAACGTACCATACGCCACCTGGAGTACATTTCGGGCTCAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAAATTCTATGGGTCAAAACGTTGATCTGAAGACATTTCATGCCTCAAATACAAATACCGTCCCTAAAGAGGTTGGGTATCCCTTACCGCGGTCCGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGGCTTTCAGCCTTACGTGAGTAAACTTGTGCGAGGAAATTCCTTCGTCAATAGCAGACAGGCAAGTTGGCGGGGATTTCCTCAGTGTGATCCATGTAGCACAAGATGCATGTCTAGTGAAAAAGGTAGGATTCCAATTTAGGGGCTGGCGAGTCTTACATCCTTACCAGACGCAGATTCGCCTATCCCAGTGATGACCTCAAGCATTACTAGAAGGGGATTCCATAACATCACTCATTTGGAAGCTTTGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAACTCGACGGGCCTTATGATAGGGTCAAGAACGGATCCGACGTAGCAGCTGCACTCTTTTATTGACCCGGTAAACGCAATTGTCCCGTCATGTAGTTTATAATTGTTTTTTTTCGGACACACCTCAAATATCACGTTAGGATTTCTATGACACTGATACTTGACCGAGCCAGACTACGCCGAACCAAGTCCGAAGAGAGCCATATTCTTCATTCCACATGCATTAGTACAACTCACCACTAACCACTTTTACTTTGACCTTCGCCATGGTGCCACAAGCCAGCTTGATCTTAGACGATTGGACCCTCTCTTGTAGCGTCACTCCGCCAAACTGCCTGTGGCCCCTGAGAGTCGTTTGGCTGCGCTAATATGTA", "ATCAATCTCGGGTTATCCTGGCAACGTTTTTGAGCATACCAAGTGGTCAGCGTTATTTAACGGCGTACCTATGTCGAGAAAATTTAACCACTTATATATCTTCCTGCATACACGCCAGCGTGCATTCCTAGCTTTGGTTTCTACGTGTAAAGGTTGTGCTCACTGTGAGTGTTGTTCCATATGGGCCGTTGGCACGCTAGGATGCTAACTCGCTCAATTCTCATCCTTTGCTTCGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAACGCTCTTCCCCCCAGTTACAGGAAGTCATCCCGACCCCTTCAGACGGAACGATCTGCCCCATTGGAAGTAGCTCTACACAGGCGTGACCGGAGTGCTAATACACGCGGGATCATAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGCATCCAGGGGTTCAGTCGTGTCTTACTCCGATCAGTCTCCTATGTCATTTATCGGTTGCTACGAGGTGATTCTGCAGAATAGCTAGGCCGAATGAATCGAGAGTTGTCTCGTGCAGACCAACGACACGTTTACAACACCATTCTCACTCTGTTCTTGCCGATTCAGATTCGGGTAGCTGAAGCACGGCGCGACTCACTTATTATGGTTTGAACCAATAAGGGTACGAGGAGCTGCAGAATAATAAGGTAGTCGGACAGACCTTTACAAACTGACACTAGAAAGAGTTACAAGAACGATGAGGATCGAGGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGGTGCGACGCGACCCTAGCGCGGTTATGGTATGGCTGGCGACAAAGTGCGTCAGTTGCCGGGGCAATAGGTCATCTGTGACTAGTTGGGCAGCCCGCGTTGATTAAGCCAGGCCGTATTCTCCATCAAGTGAAGCAGGTCCCCATCCATCAAGGCTAGGCGATTGGCTTCCTCTGCTCGCTGGGTACTGTTATGGAGGTAGTTAATGTGTTATTCTACCGAGGTGAGCGTGTGAACTGCATGAAAATCTGTACGACGGCATCCTAAGGCGGGAGGGACTTCTCTTATATCTCAAGGTTTCTACGGTTGTTATGTACGGCCCGTCGAACGCGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGTCCCCGTTATAGCAGAGAATTGGACAGAATTAAGAACTTTCACTTTCCATGTTCGTAGAGGCAACAAAATGGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGGCTTTCAGCCTTACGTGAGTAAACTTGTGCGAGGAAATTCCTTCGTCAATAGCAGACAGGCAAGTTGGCGGGGATTTCCTCAGTGTGATCCATGTAGCACAAGATGCATGTCTAGTGAAAAAGGTAGGATTCCAATTTAGGGGCTGGCGAGTCTTACATCCTTACCAGACGCAGATTCGCCTATCCCAGTGATGACCTCAAGCATTACTAGAAGGGGATTCCATAACATCACTCATTTGGAAGCTTTGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGTCAACTGTGAGAACGACATGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATTGTCTAGATCAATCCCGACCCCAAAAGGCAATCCCCTCCGCTAACACTAGAAACAATGGTCGGCCTTGTCGGGCGCAATACATATCCCTAAGGTATTGACCAGTGCGCGGCGTTCTGCCGTTCCTATGGTAGATTAACGGTGTGCCCCGCATTGCCAAAGGCCAGAAGTTAGACCAAATTTGCGAGGCGCGTGCAGGGTCTAATGTGCGCTCAAATGATCAGATGTACTCCCCAAACGCACCCTTCGTGGGATGACCCCCGAGCTGCGCAGAATCAACGAAACTCCTGACTGAAAGGCTAAGTTCGGACGATGTCCCTTTCTAACATATACGGGCCTAGGCCCGCTCGTGAGTGGGTGACGCTTGACTTTAATAGTGTACCCGTAACGGGTTGGGCCTATACCCCGCGACTTGCAGTATCACACATTATCTGTGGAAGGGTTAGGGGCATCACTTGCGCGATAAGACGCTCTCCTTGGAGCAAGCCAAGCGGGGTACTATTTAACGATGATGCGATCTCCATCGAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAACCAACTGCACGGCCTAGTCCTAGGCTTAGACAGGGTCATTACAGAAGCGCCTAGGTGCACGTTGCCCGTTGTGAACCTGATTCCGCAGCGTCAGTTCAGCACATTAGAGCAATACAAAAAACTTTCAGCCAGCGTTAGTGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATTCCCGCCTATGACGGGCTTAGCACACGCCTGGTATATCATAAAAAGACCGCAATCATTAGATCCCCGGACGAGTCGGGGGTGGTCTTCGGACAAGGTCAGAGTTTTCGCTCATTGGTCTGAAGTGTCCCTTTAGCCTAATCCAGTGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAAATTCTATGGGTCAAAACGTTGATCTGAAGACATTTCATGCCTCAAATACAAATACCGTCCCTAAAGAGGTTGGGTATCCCTTACCGCGGTCCGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAACTTAAGGGCCTTGAAGAATGCCTCATCGTTATTGGCAGCCAAGGTCACGAGATTTGCGTGCAGGGCAATCCATGCGGGACATGTATGATCGCATGCTCAGGTAAAAAAATTGTGAGTCATACCTGGTTGAATTAGGATAAGGCAACCGAGACGATTGATGTTTATGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATCGTACGGCGAATAGTGGTTTCGCTGGCCCGGAAACGCTCCCAGTGCGAGCAGTCTCGGGAGCAAGATCCTCTACTACAGCCCTGGGTCGGGGTCCGTTATTCTTGGGACCCTTCTGACTGACTACGTTCGAGACCCCTTGTGCGGAAGTGAGCGCAGTGGTTTCTGCGTGCCGCCGAGGATTCGCTCTAAAGACCAACATTGCATGAAGCTATGTAGCCTCGGCCTCACTCCCCGCTTGTTGCTAATGGTCCGAACTGGCGCGCGTTTAGCACACCCACTGCCTGACTTGTATGATACGTTAAAAAGAAGGCTTGGAGAGTTACGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATTAGCCGTGTCTGGAGGTTGTGAAGCGTGGAGCATTTCGCTGTATCGAGTGTTGAATTTTCAACCCAACGTTTGCCGCACGTCTCCCAAGATATGGGATACTCAATGTTCGACGGGAACTCGGGGTATCGTCCAGCTCGCTCTTCCACCGATTAGGAAATCTCTGAAGCGCGCTGCCGTATTACCCGCTAGCTTATTCTGCGTGGGGCGTCGCAATTTAACGCTGCTAAGGCAGTCACAAGACACGATGCAAAAGCTTGAGAACAATGCTTGCGAGTTCGCGGTAAGTCGGTTGCTCCATGACATCTGGACCGCGGGTGTCCGTATTGTCGATTATAAACGCATCTTCGCCACCGCAGAACGTCATGGCGGTAGAGGTCTCGAGAATAGCGCGTCTGGTGAAAAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAGTTTAGAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAACAACGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAAAGTTGGTGTATACGTGGTGTATCGTCCCAGGTCCGTACGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAATAAAAGCATGGGTTTAAAAGTTGCGTACTGACCCTTCGGTATGCTGGTTCAAGAAAGATAGGATAAGCTCGTAATTTAAAGTGGCGCTCTAAGGCGTGCCAGCAAAGGGAAATCGGCTAATGTAGCGAACGGTACGAGCGGACCCTCCTGTACTCCAATCCCCCCGGAGCGACGTGCTACCCATGTATGGAACACCAGAGCGCCGGAATCCAGCGATCCTAGTTCTTCCAGTGTCAAACTCCAAGCGGCACTCTCCGTGCCCCACAGGCCGTGCATCAAGTCGGCCAGATTAAACCTGCTAGCATGGCGGGTCAGTCCGATTCATGGCGACCCTTGACATGCGACGTAAACTGATAAATTTACACGTCTCCCGACTTCGTTGTATGTATGCGCACGATTCCCAGGTCAGACGTCCGCGCGAAGCGCCTACCGGTCTGTAAAGACACTTAAGCGGGAATATGGGATATGAATCAAGGCTAAGACTAAATCCGTCAACGTCAGGCAATCCCGTACGCAGGGCTCAAATGAACGGTGATGAACGAATAAGATCTCGCACCGAACGATCAGAGCAACTGTAGCTACTGGCCCCAAATTACGGGGGGGGCACGGCCATACGTGAGCTCTCGGTGGGATCGCACTCTCTCTATTCAGCTCTCTTGCGAGTACAGGATCTTATCGTGTCAAATACGGCCTCACCACGTGAAATGGCACAATGGACTTTGCGTCGGATGTCTCTATTTCAATCCCCTGATAGTGGGACACAATGGAGATTTTCTTAAGCGCTTATCAGAGTACACTCGAAGAAGGTTGCTGCTGGAAGATCTCCCTGGACCATACTAAGCTAGCGCCAACATCGCCAAGTCAGACCCGGGGGCTGTCCTCACGATAGAATGCGTCACGTGACGAGCGCAACTACGGTTAGTAATAGTTTTAGCAGAGTAGGCGGCAGTTTTCCCGGAATTTAGACAAAGCCTAAGGGCAAACGCGAGCGTCGGTCCACAAGACTGATGATTGACGGGGCTAAAAATTCACCAGGGAAAGGCCGGGCAGCTGTTGGTACTACGATTCATGCTACGCTACCATAGGCAGATACAATCTATTCGTTAGCTTTACCCTGGGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAACTGAGACCCGTTTTGGGGCCCAAGTGTCAACCGCGACAAGTGAGCTCCAGTACGAAGCGTAATGCCCTCTCCTCACCTTTTGTGAGCGTGAGTGTAGGAAGAACAAAGAGCTCATTGTACAAACTGTTAGACAGCTCACGGCAGGCGAGGGGTCCGTACAGGGATCCGATTCTGGAGCAAAAACCTTAGTTAGCCGCGTGACGGTCCGATCCCTCGTGCTTGTCCGAATGGCCTTCATGAAACGTACCATACGCCACCTGGAGTACATTTCGGGCTCAGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAACCACTGGTAAACGAGGCCACTAATAATTGTAACAATTCTGGTAGTAATAAGTTTCGTTACGCGGCCCACTATGCTGGAGCGGCATAGGGGTGCAATGTTACGCAACTCGACGGGCCTTATGATAGGGTCAAGAACGGATCCGACGTAGCAGCTGCACTCTTTTATTGACCCGGTAAACGCAATTGTCCCGTCATGTAGTTTATAATTGTTTTTTTTCGGACACACCTCAAATATCACGTTAGGATTTCTATGACACTGATACTTGACCGAGCCAGACTACGCCGAACCAAGTCCGAAGAGAGCCATATTCTTCATTCCACATGCATTAGTACAACTCACCACTAACCACTTTTACTTTGACCTTCGCCATGGTGCCACAAGCCAGCTTGATCTTAGACGATTGGACCCTCTCTTGTAGCGTCACTCCGCCAAACTGCCTGTGGCCCCTGAGAGTCGTTTGGCTGCGCTAATATGTA")
-
-print(StringReconstructionReadPairs(result, k, d))
-#print("GACACATCTCTCA")
-#Correct output: GACACATCTCTCA
+result = StringReconstructionReadPairs(paired_reads, k, d)
+print(result)  #Should be GGTGATACT

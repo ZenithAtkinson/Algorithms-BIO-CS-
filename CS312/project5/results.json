@@ -1,11 +1,3 @@
 {
-    "tests": [
-        {
-            "score": 5,
-            "max_score": 5,
-            "name": "test_tsp.py::test_extra_credit_branch_and_bound_smart",
-            "output": "\n",
-            "visibility": "visible"
-        }
-    ]
+    "tests": []
 }

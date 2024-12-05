@@ -1,0 +1,12 @@
+{
+  "CS312/project3/test_network_routing.py": true,
+  "CS312/project3/test_priority_queues.py": true,
+  "CS312/project4/test_utils.py": true,
+  "CS312/project2/test_alignment.py": true,
+  "CS312/project2/test_convex_hull.py::test_small_alignment": true,
+  "CS312/project5/test_tsp.py::test_greedy": true,
+  "CS312/project5/test_tsp.py::test_dfs": true,
+  "CS312/project5/test_tsp.py::test_branch_and_bound": true,
+  "CS312/project5/test_tsp.py::test_branch_and_bound_smart": true,
+  "CS312/project5/test_tsp.py::test_extra_credit_branch_and_bound_smart": true
+}
